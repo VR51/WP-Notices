@@ -1,6 +1,15 @@
-# WP-Notices
+=== WP Notices ===
+Contributors: leehodson
+Tags: notices,messages,members,membership,timed,regular,periodic
+Donate link: https://paypal.me/vr51
+Requires at least: 4.0.0
+Tested up to: 4.5.3
+Stable tag: 1.0.0
+License: GPL3
+
 Display notice messages to visitors, admin users, editors, contributors and anonymous readers. Notices can last forever, display between specific dates or at specified times of specified days regularly. Automatically convert notices to images if desired.
-# Description
+
+== Description ==
 WP Notices is a flexible way to display notices to readers.
 
 Notices can be targeted by WordPress user role (admin, editor, contributor, author, subscriber, reader, anon or any other configured role), by WordPress capabilities (manage_plugins, read, delete_pages or any other configured capability) or targeted at a specific user.
@@ -17,10 +26,11 @@ WP Notices is written to be used to display notices to specific users, user grou
 
 WP Notices has been tested. It is known to work. If you find a bug, let us know.
 
-# Installation
+== Installation ==
 Install as you would any other WordPress plugin.
 
-# Instructions
+== Frequently Asked Questions ==
+=== Instructions ===
 <p>The shortcode with all attributes is:</p>
 
 <p><strong>[wp-notice to='admin' class='alert-success' start='Tuesday 1pm' end='Tuesday 5pm' image='portrait']</strong>Message to display to admin users every Tuesday between 1pm and 5pm.<strong>[/wp-notice]</strong></p>
@@ -107,7 +117,12 @@ Install as you would any other WordPress plugin.
 
 <p><a href="https://codex.wordpress.org/Roles_and_Capabilities" target="_blank">WordPress roles and capabilities list</a>. These are used in the "to" field.</p>
 
-# Changelog
-1.0.0 - First Public Release
+== Screenshots ==
+1. Info Message
+
+== Changelog ==
+1.0.0
 
 23rd June 2016
+
+- First public release
