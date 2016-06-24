@@ -276,6 +276,7 @@ if ( ! is_admin() ) {
 	
 	array_map('unlink', glob($pdf_cache."/*.".$cacheWipeDate));
 */
-	array_map('unlink', glob($pdf_cache."/*"));
+	$slug=basename(get_permalink());
+	array_map('unlink', glob($pdf_cache."/".$slug."*"));
 	
 }
