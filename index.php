@@ -169,7 +169,7 @@ function vr_wp_notices( $atts, $content='' ) {
 	}
 
 	// If $output (as $output is decided above) is needed in image format we will convert it to an image whether $output is empty or not.
-	if ( $image ) {
+	if ( $image == 'portrait' || $image == 'landscape' ) {
 	
 		// We create HTML, PDF and PNG file for the notice
 		
