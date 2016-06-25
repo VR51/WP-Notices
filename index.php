@@ -10,7 +10,7 @@ Donate link: https://paypal.me/vr51
 Description: Display notice messages to visitors, admin users, editors, contributors and anonymous readers. Notices can last forever, display between specific dates or at specified times of specified days regularly. Automatically convert notices to images if desired.
 Requires at least: 4.0.0
 Tested up to: 4.5.3
-Stable tag: 1.0.0
+Stable tag: 1.1.0
 License: GPL3
 */
 
@@ -18,7 +18,7 @@ License: GPL3
 *
 *	WP Notices
 *
-*	[wp notice to='admin' user='false' class='alert-info' start='Monday 12pm' end='Monday 6pm' image='basic']Message[/notice]
+*	[wp-notice to='admin' user='false' class='alert-info' start='Monday 12pm' end='Monday 6pm' image='basic' html5='true']Message[/wp-notice]
 *
 *		@to = The user role, capability or username the message should display to. Options are
 *					anon, anonymous, admin, administrator, editor, author, contributor, subscriber
@@ -29,11 +29,12 @@ License: GPL3
 *		@start = (optional) Full date, or day, or month, or year etc... for publication to begin. Accepts PHP natural time language.
 *		@end =  (optional) Full date, or day, or month, or year etc... for publication to expire. Accepts PHP natural time language.
 *				Relative Time reference: http://php.net/manual/en/datetime.formats.relative.php
-*		@image = (optional) Convert the message to an image to prevent search engine indexing of the text within the notice when the notice is set
+*		@image = (optional) Convert the message to an image to prevent search engine indexing of the text within the notice when the notice is set. Requires ImageMagick to be enabled on the server. No ImageMagick equals no image support.
 *					to show publicly. Options are 'landscape' and 'portrait'.
 *		@format = (optional) Specify the size format for the image e.g. A4, B4, C4, letter etc... More details are in the help file.
+*		@html5 = (optional) Enable or disable HTML5 support. Default is true (enabled). Disable if it causes bugs.
 *
-*		@help = true or false. Default is false. Display link to shortcode help page.
+*		@help = (optional) Display link to shortcode help page and help messages (if any). Accepts a user role, user capability, username (@username) or admin.
 *
 *		Help does not display to anonymous readers
 *		Messages can only be displayed to a single user or capability type or user role, not a mix of each.
@@ -61,9 +62,8 @@ if ( !function_exists( 'add_action' ) ) {
 *
 **/
 
-// Use dompdf to generate PDF of the content
+// Use dompdf to generate PDF of the content (which will later be converted to an image)
 require_once plugin_dir_path( __FILE__ ).'includes/dompdf/autoload.inc.php';
-
 // reference the Dompdf namespace
 use Dompdf\Dompdf;
 
@@ -85,12 +85,13 @@ function vr_wp_notices( $atts, $content='' ) {
 	$atts = shortcode_atts(
 		array(
  
-			'to' => 'administrator', // User role https://codex.wordpress.org/Roles_and_Capabilities
-			'class' => '', // Plugin style class. No commas or full-stops needed
+			'to' => 'administrator', // User role https://codex.wordpress.org/Roles_and_Capabilities (options: any WordPress user role, any WordPress capability, @ any username and the aliases: admin, loggedin and everyone)
+			'class' => '', // Plugin style class. No commas or full-stops needed (in built options: alert, alert-info, alert-success, alert-danger and alert-warning)
 			'start' => '', // Message launch date
 			'end' => 'Tomorrow', // Message expiry date
-			'image' => '', // Convert the notice to an image
-			'format' => 'c4',
+			'image' => '', // Convert the notice to an image (options: portrait or landscape)
+			'format' => 'c4', // Set the PDF 
+			'html5' => 'true', // Enable HTML5 support (pptions: are true or false).
 			'help' => '' // Display help reference information for this shortcode
  
 		), $atts, 'wp-notice'
@@ -112,9 +113,10 @@ function vr_wp_notices( $atts, $content='' ) {
 	$end = sanitize_text_field( $atts['end'] );
 	$image = sanitize_text_field( $atts['image'] );
 	$format = sanitize_text_field( $atts['format'] );
+	$html5 = sanitize_text_field( $atts['html5'] );
 
 	$help = sanitize_text_field( $atts['help'] );
-
+		if ( $help == 'admin' ) { $help='administrator'; } // Set admin alias
 	$content = wp_kses_post( $content );
 
 	/**
@@ -124,38 +126,54 @@ function vr_wp_notices( $atts, $content='' ) {
 	**/
 
 	// Does the user need help?
-	if ( $help == 'true' ) {
+	if ( $help ) {
+	
 		$help_file = plugin_dir_url( __FILE__ ).'includes/help.html';
-		$help = "<div class='alert alert-info'><a href='$help_file' target='_blank'>SHORTCODE USAGE HELP</a></div>";
+		if ( ! extension_loaded('imagick') ) { $nomagick = '<p>Image creation requires ImageMagick support. Please enable ImageMagick in your server\s PHP configurations.</p>'; } else { $nomagick = ''; }
+	
+		// Display to username?
+		if ( substr($help, 0, 1) == '@' ) {
+			$user = substr($help, 1);
+			$current_user = wp_get_current_user();
+			if ( "$user" == $current_user->user_login ) {
+				$help = "<div class='alert alert-info'><a href='$help_file' target='_blank'>SHORTCODE USAGE HELP</a></div>".$nomagick;
+			}
+		} // Display to userole?
+		elseif ( current_user_can( "$help" ) ) {
+				$help = "<div class='alert alert-info'><a href='$help_file' target='_blank'>SHORTCODE USAGE HELP</a></div>".$nomagick;
+		}
+		else {
+			$help = '';
+		}
+	
 	}
- 
-	// Set $output to null just in case...
-	$output = '';
+	
 
 	// Decide who to display $output to
+	
+	$output = "<div class='$class' role='alert'>".do_shortcode($content)."</div>".$help;
 
 	if ( $to == 'everyone' ) {
-		$output = "<div class='$class' role='alert'>$content</div>";
+		$output = $output;
 	}
-
-	if ( $to == 'anonymous' && ! is_user_logged_in() ) {
-		$output = "<div class='$class' role='alert'>$content</div>";
-	}
-
-	// Display to username?
-	if ( substr($to, 0, 1) == '@' ) {
+	elseif ( $to == 'anonymous' && ! is_user_logged_in() ) {
+		$output = $output;
+	} // Display to username?
+	elseif ( substr($to, 0, 1) == '@' ) {
 		$user = substr($to, 1);
 		$current_user = wp_get_current_user();
 		if ( "$user" == $current_user->user_login ) {
-			$output = "<div class='$class' role='alert'>$content</div>".$help;
+			$output = $output;
 		}
+	} // Display to userole?
+	elseif ( current_user_can( "$to" ) ) {
+			$output = $output;
 	} else {
-	// Display to userole?
-		if ( current_user_can( "$to" ) ) {
-			$output = "<div class='$class' role='alert'>$content</div>".$help;
-		}
+		$output = '';
 	}
 
+	// Decide whether we are in date
+	
 	if ( ! $start == '' ) {
 
 		$now = time();
@@ -169,7 +187,7 @@ function vr_wp_notices( $atts, $content='' ) {
 	}
 
 	// If $output (as $output is decided above) is needed in image format we will convert it to an image whether $output is empty or not.
-	if ( $image == 'portrait' || $image == 'landscape' ) {
+	if ( $image == 'portrait' || $image == 'landscape' && extension_loaded('imagick') ) {
 	
 		// We create HTML, PDF and PNG file for the notice
 		
@@ -200,6 +218,9 @@ function vr_wp_notices( $atts, $content='' ) {
 		]);
 		$dompdf->setHttpContext($context);
 		
+		if ( $html5 == 'true' ) {
+			$dompdf->set_option('isPhpEnabled', 'TRUE');
+		}
 		$dompdf->set_option('isRemoteEnabled', 'TRUE');
 		$dompdf->setPaper("$format", "$image");
 		// $dompdf->set_base_path(plugin_dir_path( __FILE__ ));
@@ -255,6 +276,9 @@ function vr_wp_notices( $atts, $content='' ) {
 **/
 
 if ( ! is_admin() ) {
+
+	add_filter( 'widget_text', array( $wp_embed, 'run_shortcode' ), 8 );
+	add_filter( 'widget_text', array( $wp_embed, 'autoembed'), 8 );
 
 	/* Shortcode */
 	add_shortcode( 'wp-notice', 'vr_wp_notices');
