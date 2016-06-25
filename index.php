@@ -29,9 +29,11 @@ License: GPL3
 *		@start = (optional) Full date, or day, or month, or year etc... for publication to begin. Accepts PHP natural time language.
 *		@end =  (optional) Full date, or day, or month, or year etc... for publication to expire. Accepts PHP natural time language.
 *				Relative Time reference: http://php.net/manual/en/datetime.formats.relative.php
-*		@image = (optional) Convert the message to an image to prevent search engine indexing of the text within the notice when the notice is set. Requires ImageMagick to be enabled on the server. No ImageMagick equals no image support.
-*					to show publicly. Options are 'landscape' and 'portrait'.
+*		@image = (optional) Convert the message to an image to prevent search engine indexing of the text within the notice when the notice is set.
+*					Requires ImageMagick to be enabled on the server. No ImageMagick equals no image support.
+*					Options are 'landscape' or 'portrait' or @number e.g. @300. Use an @number value to specify a custom width. Measurement is in points (not pixels).
 *		@format = (optional) Specify the size format for the image e.g. A4, B4, C4, letter etc... More details are in the help file.
+*					When image='@' e.g. image='@300', use a number in the format='' attribute to specify a custom image height e.g. image='@200' format='300'. Notice format does not require an @ sign.
 *		@html5 = (optional) Enable or disable HTML5 support. Default is true (enabled). Disable if it causes bugs.
 *
 *		@help = (optional) Display link to shortcode help page and help messages (if any). Accepts a user role, user capability, username (@username) or admin.
@@ -187,7 +189,7 @@ function vr_wp_notices( $atts, $content='' ) {
 	}
 
 	// If $output (as $output is decided above) is needed in image format we will convert it to an image whether $output is empty or not.
-	if ( $image == 'portrait' || $image == 'landscape' && extension_loaded('imagick') ) {
+	if ( $image == 'portrait' || $image == 'landscape' || substr($image, 0, 1) == '@' && extension_loaded('imagick') ) {
 	
 		// We create HTML, PDF and PNG file for the notice
 		
@@ -222,7 +224,19 @@ function vr_wp_notices( $atts, $content='' ) {
 			$dompdf->set_option('isPhpEnabled', 'TRUE');
 		}
 		$dompdf->set_option('isRemoteEnabled', 'TRUE');
-		$dompdf->setPaper("$format", "$image");
+		
+		if ( substr($image, 0, 1) == '@' ) {
+			$image = substr($image, 1);
+			// Confirm we have numbers
+				if ( ! intval($image) ) { $image = '400'; } // Check we have anumber otherwise use 400pt as default
+				if ( substr($format, 0, 1) == '@' ) { $format = substr($format, 1); } // Remove @ from $format. Someone's likely to put one in...
+				if ( ! intval($format) ) { $format = '400'; }
+			$custom = array(0,0,$image,$format);
+			$dompdf->setPaper($custom);
+		} else {
+			$dompdf->setPaper("$format", "$image");
+		}
+		
 		// $dompdf->set_base_path(plugin_dir_path( __FILE__ ));
 		// $dompdf->set_option('defaultFont', 'Courier');
 

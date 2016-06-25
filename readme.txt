@@ -40,7 +40,7 @@ Install as you would any other WordPress plugin.
  	<li><strong>to=''</strong> (required) is the addressee of the notice. This can be a WordPress user role, a WordPress capability or a registered username. Usernames must be prefixed with an <strong>@</strong>. See notes below for more details.</li>
  	<li><strong>class=''</strong> (optional) but determines the design of the notice. Any custom CSS class can be used. The default CSS classes are alert-info, alert-success, alert-warning and alert-danger. These correspond to Bootstrap alerts.</li>
  	<li><strong>start=''</strong> and <strong>end=''</strong> (optional) attributes set the start date and end date for the notice to display. These attributes accept the time of day as well. These attributes accept natural language date and time expressions as well as regular year-month-day formats. You can specify times after the date such as start='2016-12-28 10pm' end='2016-12-28 11pm'. Unless a time is specified, the start date will begin at 12 midnight and the end date will end at 12 midnight e.g start='1st Jan 2016' end='2nd Jan 2016' will count as 24 hours i.e start of day on the 1st to start of day on the second. If no end date is given then the end date will always default to 'tomorrow' i.e. never expires. State no start date to show the message forever. Want the notice to display at a particular period of the day every day? Specify times without dates.</li>
- 	<li><strong>image=''</strong> (optional) is used to convert the notice into an image file. The image file is then displayed instead of any text. This is useful for when you prefer to not have text in a public notice indexed by a search engine. For example, you may need to display a sponsored post awareness message above posts; instead of displaying the message as text you can choose to display it as an image. The options are image='portrait' and image='landscape'. When the image option is specified we also create a standalone PDF and HTML version of the notice; which you might find useful.</li>
+ 	<li><strong>image=''</strong> (optional) is used to convert the notice into an image file. The image file is then displayed instead of any text. This is useful for when you prefer to not have text in a public notice indexed by a search engine. For example, you may need to display a sponsored post awareness message above posts; instead of displaying the message as text you can choose to display it as an image. The options are image='portrait' and image='landscape'. See the note below <strong>Custom Image Dimensions</strong> to learn how to specify exact image dimensions.</li>
  	<li><strong>format=''</strong> (optional) is used to specify the paper sized format of the images. For example, A4, B4 or C4. Adjusting this setting could improve legibility of the text within the image. The default value is C4. See notes below for more information.</li>
  	<li><strong>html5='false'</strong> (optional) is used to disable HTML5 support for the PDF creator. HTML5 support is enabled by default. Only use this attribute if HTML renders poorly.</li>
  	<li><strong>help='true'</strong> (optional) Display link to shortcode help page and help messages (if any). Accepts a user role, user capability, username (@username) or admin.</li>
@@ -114,6 +114,8 @@ Install as you would any other WordPress plugin.
  	<li>8.5x14 (612.00, 1008.0)</li>
  	<li>11x17 (792.00, 1224.00)</li>
 </ul>
+<h3>Custom Image Dimensions</h3>
+<p>Custom image dimensions can be set using the attributes image='' and format=''. Instead of using image='landscape' or image='portrait' you can use image='@number', replacing number with an actual integer value such as image='@400'. Use format='' to specify the height e.g. format='300' (the @ sign is optional for format). For example, to describe an image of 400 points by 800 points, use image='@400' format='800'.</p>
 <h2>Reference Links</h2>
 <p><a href="http://php.net/manual/en/datetime.formats.relative.php" target="_blank">PHP natural language time reference information (Relative Times)</a>.</p>
 
@@ -132,7 +134,7 @@ Install as you would any other WordPress plugin.
 - Added filter to enable oEmbeds and shortcodes in text widgets. Undecided whether to keep this filter in index.php or move it to the FAQ section.
 - Added test for ImageMagick support. Conversion of PDFs to images requires ImageMagick. No ImageMagick = no image creation. Help message when enabled displays warning when ImageMagick is not enabled.
 - Adjusted help='' attribute to accept @username, a WordPress user role, WordPress user capability or admin as the intended viewer of the help notice.
-
+- Added option to set custom image dimensions using image='@number' format='number' (width & height).
 
 1.0.0 - First Public Release
 
