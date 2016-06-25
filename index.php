@@ -10,7 +10,7 @@ Donate link: https://paypal.me/vr51
 Description: Display notice messages to visitors, admin users, editors, contributors and anonymous readers. Notices can last forever, display between specific dates or at specified times of specified days regularly. Automatically convert notices to images if desired.
 Requires at least: 4.0.0
 Tested up to: 4.5.3
-Stable tag: 1.1.0
+Stable tag: 1.1.1
 License: GPL3
 */
 
@@ -45,6 +45,8 @@ License: GPL3
 *
 *		WP Notices has been tested. It is known to work. If you find a bug, let us know.
 *
+*		Database option key prefix = vr_wp_notices_
+*
 **/
 
 /**
@@ -57,6 +59,41 @@ if ( !function_exists( 'add_action' ) ) {
 	exit;
 }
 
+/**
+*
+*	Activation Routine
+*
+**/
+
+function vr_wp_notices_install() {
+ 
+	// Register database option to store random directory name for dompdf (security precaution)
+	$locationDOMPDF = plugin_dir_path( __FILE__ ).'includes/'.hash( 'sha1', mt_rand() );
+    update_option( 'vr_wp_notices_dompdf', "$locationDOMPDF" );
+    
+    // Check for dompdf directory, rename it if it exists
+    $dirDOMPDF = plugin_dir_path( __FILE__ ).'includes/dompdf';
+	if ( file_exists( "$dirDOMPDF" ) ) {
+		$locationDOMPDF = get_option('vr_wp_notices_dompdf');
+		rename( "$dirDOMPDF", "$locationDOMPDF" );
+	}
+}
+register_activation_hook( __FILE__, 'vr_wp_notices_install' );
+
+
+/**
+*
+*	Uninstallation Routine
+*
+**/
+
+function vr_wp_notices_uninstall() {
+ 
+    // Delete WP Notices database options
+	delete_option( 'vr_wp_notices_dompdf' );
+}
+register_uninstall_hook( __FILE__, 'vr_wp_notices_uninstall' );
+
 
 /**
 *
@@ -65,7 +102,11 @@ if ( !function_exists( 'add_action' ) ) {
 **/
 
 // Use dompdf to generate PDF of the content (which will later be converted to an image)
-require_once plugin_dir_path( __FILE__ ).'includes/dompdf/autoload.inc.php';
+if ( file_exists( plugin_dir_path( __FILE__ ).'includes/dompdf/autoload.inc.php' ) ) {
+	require_once plugin_dir_path( __FILE__ ).'includes/dompdf/autoload.inc.php';
+} else {
+	require_once get_option('vr_wp_notices_dompdf').'/autoload.inc.php';
+}
 // reference the Dompdf namespace
 use Dompdf\Dompdf;
 
@@ -76,7 +117,7 @@ use Dompdf\Dompdf;
 *
 **/
 
-function vr_wp_notices( $atts, $content='' ) {
+function vr_wp_notices_shortcode( $atts, $content='' ) {
 
 	/**
 	*
@@ -295,7 +336,7 @@ if ( ! is_admin() ) {
 	add_filter( 'widget_text', array( $wp_embed, 'autoembed'), 8 );
 
 	/* Shortcode */
-	add_shortcode( 'wp-notice', 'vr_wp_notices');
+	add_shortcode( 'wp-notice', 'vr_wp_notices_shortcode');
 
 	/* Scripts */
 	function register_vr_wp_notices_files() {

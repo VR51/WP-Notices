@@ -112,6 +112,10 @@ Install as you would any other WordPress plugin.
 <p><a href="https://codex.wordpress.org/Roles_and_Capabilities" target="_blank">WordPress roles and capabilities list</a>. These are used in the "to" field.</p>
 
 # Changelog
+1.1.1 - 25th June 2016
+
+- Security improvement. DOMPDF directory is renamed on plugin activation. The new name is created via a randomly generated sha2 hash
+
 1.1.0 - 24th June 2016
 
 - Enabled HTML5 support for dompdf. Enabled by default.
