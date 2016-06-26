@@ -26,19 +26,23 @@ WP Notices is written to be used to display notices to specific users, user grou
 
 WP Notices has been tested. It is known to work. If you find a bug, let us know.
 
+See FAQ section for usage instructions.
+
 == Installation ==
 Install as you would any other WordPress plugin.
 
 == Frequently Asked Questions ==
+
 === Instructions ===
 <p>The shortcode with all attributes is:</p>
 
-<p><strong>[wp-notice to='admin' class='alert alert-success' start='Tuesday 1pm' end='Tuesday 5pm' image='portrait' format='c4' html5='false' help='true']</strong>Message to display to admin users every Tuesday between 1pm and 5pm.<strong>[/wp-notice]</strong></p>
+<p><strong>[wp-notice to='admin' class='alert alert-success' css='' start='Tuesday 1pm' end='Tuesday 5pm' image='portrait' format='c4' html5='false' help='true']</strong>Message to display to admin users every Tuesday between 1pm and 5pm.<strong>[/wp-notice]</strong></p>
 
-<p>The shortcode has 8 attributes: to='', class='', start='', end='', image='', format='', html5='' and help=''.</p>
+<p>The shortcode has 8 attributes: to='', class='', css='', start='', end='', image='', format='', html5='' and help=''.</p>
 <ul>
  	<li><strong>to=''</strong> (required) is the addressee of the notice. This can be a WordPress user role, a WordPress capability or a registered username. Usernames must be prefixed with an <strong>@</strong>. See notes below for more details.</li>
  	<li><strong>class=''</strong> (optional) but determines the design of the notice. Any custom CSS class can be used. The default CSS classes are alert-info, alert-success, alert-warning and alert-danger. These correspond to Bootstrap alerts.</li>
+ 	<li><strong>css=''</strong> (optional) Add custom CSS to load inline or load the custom stylesheet stored in wp-content/uploads/wp-notices/css/custom.css. Use @ to load a file e.g. css='@'.</li>
  	<li><strong>start=''</strong> and <strong>end=''</strong> (optional) attributes set the start date and end date for the notice to display. These attributes accept the time of day as well. These attributes accept natural language date and time expressions as well as regular year-month-day formats. You can specify times after the date such as start='2016-12-28 10pm' end='2016-12-28 11pm'. Unless a time is specified, the start date will begin at 12 midnight and the end date will end at 12 midnight e.g start='1st Jan 2016' end='2nd Jan 2016' will count as 24 hours i.e start of day on the 1st to start of day on the second. If no end date is given then the end date will always default to 'tomorrow' i.e. never expires. State no start date to show the message forever. Want the notice to display at a particular period of the day every day? Specify times without dates.</li>
  	<li><strong>image=''</strong> (optional) is used to convert the notice into an image file. The image file is then displayed instead of any text. This is useful for when you prefer to not have text in a public notice indexed by a search engine. For example, you may need to display a sponsored post awareness message above posts; instead of displaying the message as text you can choose to display it as an image. The options are image='portrait' and image='landscape'. See the note below <strong>Custom Image Dimensions</strong> to learn how to specify exact image dimensions.</li>
  	<li><strong>format=''</strong> (optional) is used to specify the paper sized format of the images. For example, A4, B4 or C4. Adjusting this setting could improve legibility of the text within the image. The default value is C4. See notes below for more information.</li>
@@ -55,7 +59,7 @@ Install as you would any other WordPress plugin.
 
 <p>Notices that target user capabilities cascade upwards to users with higher capabilities but not downwards to those with lower capabilities e.g. if the notice is to='delete_others_pages' then editors and admins will see the message (they both share this capability) but authors, contributors and subscribers will not see the message.</p>
 
-<h2>Image formats for format='' are:</h2>
+<h2>Image inbuilt formats for format='' are ( <strong>format</strong> (width*height) ):</h2>
 <ul>
  	<li>4a0 (4767.87, 6740.79)</li>
  	<li>2a0 (3370.39, 4767.87)</li>
@@ -120,6 +124,26 @@ Install as you would any other WordPress plugin.
 <p><a href="http://php.net/manual/en/datetime.formats.relative.php" target="_blank">PHP natural language time reference information (Relative Times)</a>.</p>
 
 <p><a href="https://codex.wordpress.org/Roles_and_Capabilities" target="_blank">WordPress roles and capabilities list</a>. These are used in the "to" field.</p>
+=== Questions ===
+<strong>Why do iFrames and videos not show in image mode?</strong>
+<p>This is a limitation of the software used to create PDFs. In order to create images we first convert the notice message to PDF format. The PDF is then converted to an image. The image is what you see.</p>
+<p>iFrame content will display as a non-clickable link.</p>
+
+<strong>Can I use images in the notice message?</strong>
+<p>Yes you can. Add the image as you normally would for a post or text widget.</p>
+
+<strong>Can I use shortcodes within the WP-Notices shortcode (nested shortcodes)?</strong>
+<p>Yes.</p>
+
+<strong>Can I use background images?</strong>
+<p>Yes. Either in the CSS or using the background='' attribute.</p>
+
+<strong>Can I use my own CSS?</strong>
+<p>Yes. Use the css='' attribute to add CSS style attributes. Use css='@' to load the custom.css stylesheet. The custom.css stylesheet is in wp-content/wp-uploads/wp-notices/css/custom.css</p>
+<p>We are still deciding whether to allow specific custom CSS files to be called. The option may be added at a future date.</p>
+
+<strong>Why does my notice message not include my CSS styles when image mode is used?</strong>
+<p>The CSS style rules must be loaded through css='' either as inline styles or through the custom.css file. This is because PDF creation (which leads to image creation) takes place outside of the WordPress core code.</p>
 
 == Screenshots ==
 1. Info Message
@@ -127,7 +151,10 @@ Install as you would any other WordPress plugin.
 == Changelog ==
 1.1.1 - 25th June 2016
 
-- Security improvement. DOMPDF directory is renamed on plugin activation. The new name is created via a randomly generated sha2 hash
+- Security improvement. DOMPDF directory is renamed on plugin activation. The new name is created via a randomly generated sha2 hash. Directory name is created on plugin installation and is created afresh on reinstallation.
+- New css='' attribute. This is used to specify inline CSS for the alert or to specify a custom CSS file to load from wp-notices/css (an upcoming version of WP Notices will include an options screen for CSS file management)
+- Activation routine. Install directories wp-content/wp-notices/css and wp-content/wp-notices/tmp
+- Deactivation routine. Plugin deactivation removes scheduled event and deletes the dirctory wp-notices/tmp. wp-notices/css remains intact in case it contains custom CSS files.
 
 1.1.0 - 24th June 2016
 
