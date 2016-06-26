@@ -25,9 +25,9 @@ Install as you would any other WordPress plugin.
 # Instructions
 <p>The shortcode with all attributes is:</p>
 
-<p><strong>[wp-notice to='admin' class='alert alert-success' css='' start='Tuesday 1pm' end='Tuesday 5pm' image='portrait' format='c4' html5='false' help='true']</strong>Message to display to admin users every Tuesday between 1pm and 5pm.<strong>[/wp-notice]</strong></p>
+<p><strong>[wp-notice to='admin' class='alert alert-success' css='' start='Tuesday 1pm' end='Tuesday 5pm' image='portrait' format='c4' files='true' html5='false' help='true']</strong>Message to display to admin users every Tuesday between 1pm and 5pm.<strong>[/wp-notice]</strong></p>
 
-<p>The shortcode has 8 attributes: to='', class='', css='', start='', end='', image='', format='', html5='' and help=''.</p>
+<p>The shortcode has 10 attributes: to='', class='', css='', start='', end='', image='', format='', files='', html5='' and help=''.</p>
 <ul>
  	<li><strong>to=''</strong> (required) is the addressee of the notice. This can be a WordPress user role, a WordPress capability or a registered username. Usernames must be prefixed with an <strong>@</strong>. See notes below for more details.</li>
  	<li><strong>class=''</strong> (optional) but determines the design of the notice. Any custom CSS class can be used. The default CSS classes are alert-info, alert-success, alert-warning and alert-danger. These correspond to Bootstrap alerts.</li>
@@ -35,6 +35,7 @@ Install as you would any other WordPress plugin.
  	<li><strong>start=''</strong> and <strong>end=''</strong> (optional) attributes set the start date and end date for the notice to display. These attributes accept the time of day as well. These attributes accept natural language date and time expressions as well as regular year-month-day formats. You can specify times after the date such as start='2016-12-28 10pm' end='2016-12-28 11pm'. Unless a time is specified, the start date will begin at 12 midnight and the end date will end at 12 midnight e.g start='1st Jan 2016' end='2nd Jan 2016' will count as 24 hours i.e start of day on the 1st to start of day on the second. If no end date is given then the end date will always default to 'tomorrow' i.e. never expires. State no start date to show the message forever. Want the notice to display at a particular period of the day every day? Specify times without dates.</li>
  	<li><strong>image=''</strong> (optional) is used to convert the notice into an image file. The image file is then displayed instead of any text. This is useful for when you prefer to not have text in a public notice indexed by a search engine. For example, you may need to display a sponsored post awareness message above posts; instead of displaying the message as text you can choose to display it as an image. The options are image='portrait' and image='landscape'. See the note below <strong>Custom Image Dimensions</strong> to learn how to specify exact image dimensions.</li>
  	<li><strong>format=''</strong> (optional) is used to specify the paper sized format of the images. For example, A4, B4 or C4. Adjusting this setting could improve legibility of the text within the image. The default value is C4. See notes below for more information.</li>
+ 	<li><strong>files=''</strong> (optional) Only works when image mode is enabled. Shows download links for HTML, PDF and PNG files created during image creation. The files are deleted one hour after creation. Set files='true' to display the links.</li>
  	<li><strong>html5='false'</strong> (optional) is used to disable HTML5 support for the PDF creator. HTML5 support is enabled by default. Only use this attribute if HTML renders poorly.</li>
  	<li><strong>help='true'</strong> (optional) Display link to shortcode help page and help messages (if any). Accepts a user role, user capability, username (@username) or admin.</li>
 </ul>
@@ -136,12 +137,13 @@ Install as you would any other WordPress plugin.
 <p>The CSS style rules must be loaded through css='' either as inline styles or through the custom.css file. This is because PDF creation (which leads to image creation) takes place outside of the WordPress core code.</p>
 
 # Changelog
-1.1.1 - 25th June 2016
+1.2.0 - 25th June 2016
 
 - Security improvement. DOMPDF directory is renamed on plugin activation. The new name is created via a randomly generated sha2 hash. Directory name is created on plugin installation and is created afresh on reinstallation.
-- New css='' attribute. This is used to specify inline CSS for the notice message or to load the custom CSS file from wp-content/uploads/wp-notices/css/custom.css (an upcoming version of WP Notices will include an options screen for CSS file management)
+- New css='' attribute. This is used to specify inline CSS for the alert or to specify a custom CSS file to load from wp-notices/css (an upcoming version of WP Notices will include an options screen for CSS file management)
 - Activation routine. Install directories wp-content/wp-notices/css and wp-content/wp-notices/tmp
 - Deactivation routine. Plugin deactivation removes scheduled event and deletes the dirctory wp-notices/tmp. wp-notices/css remains intact in case it contains custom CSS files.
+- Added file download feature. Files created during image creation can now be downloaded. Set files='true' to display a link below the image notice. A future update of WP Notices will move file creation to a separate process and thereby permit file downloads for none image notices too.
 
 1.1.0 - 24th June 2016
 
