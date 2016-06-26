@@ -122,6 +122,10 @@ register_deactivation_hook(__FILE__, 'vr_wp_notices_deactivate');
 
 function vr_wp_notices_uninstall() {
  
+	// Empty wp-notices/tmp directory
+	$wp_notices_directory = get_option( 'vr_wp_notices_directory' );
+	array_map('unlink', glob("$wp_notices_directory/tmp/*"));
+	
     // Delete WP Notices database options
 	delete_option( 'vr_wp_notices_dompdf' );
 	delete_option('vr_wp_notices_directory');
