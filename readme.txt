@@ -36,7 +36,7 @@ Install as you would any other WordPress plugin.
 === Instructions ===
 <p>The shortcode with all attributes is:</p>
 
-<p><strong>[wp-notice to='admin' class='alert alert-success' css='' start='Tuesday 1pm' end='Tuesday 5pm' image='portrait' format='c4' files='true' html5='false' help='true']</strong>Message to display to admin users every Tuesday between 1pm and 5pm.<strong>[/wp-notice]</strong></p>
+<p><strong>[wp-notice to='admin' class='alert alert-success' css='' start='Tuesday 1pm' end='Tuesday 5pm' image='portrait' format='c4' files='pdf,html,png' html5='false' help='true']</strong>Message to display to admin users every Tuesday between 1pm and 5pm.<strong>[/wp-notice]</strong></p>
 
 <p>The shortcode has 10 attributes: to='', class='', css='', start='', end='', image='', format='', files='', html5='' and help=''.</p>
 <ul>
