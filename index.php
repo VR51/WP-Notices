@@ -11,6 +11,7 @@ Description: Display notice messages to visitors, admin users, editors, contribu
 Requires at least: 4.0.0
 Tested up to: 4.5.3
 Stable tag: 1.2.0
+Version: 1.2.1
 License: GPL3
 */
 
@@ -35,7 +36,7 @@ License: GPL3
 *					Options are 'landscape' or 'portrait' or @number e.g. @300. Use an @number value to specify a custom width. Measurement is in points (not pixels).
 *		@format	= (optional) Specify the size format for the image e.g. A4, B4, C4, letter etc... More details are in the help file.
 *					When image='@' e.g. image='@300', use a number in the format='' attribute to specify a custom image height e.g. image='@200' format='300'. Notice format does not require an @ sign.
-*		@files	= (optional) Show links to notice message HTML, PDF and PNG files. These files are available only when the notice is converted to an image. Set to files='true' to show download links.
+*		@files	= (optional) Show links to notice message HTML, PDF and PNG files. Separate each file type with a comma e.g. files='pdf,html,png'. These files are available only when the notice is converted to an image.
 *		@html5	= (optional) Enable or disable HTML5 support. Default is true (enabled). Disable if it causes bugs.
 *
 *		@help	= (optional) Display link to shortcode help page and help messages (if any). Accepts a user role, user capability, username (@username) or admin.
@@ -81,11 +82,13 @@ function vr_wp_notices_install() {
 		rename( plugin_dir_path( __FILE__ ).'includes/dompdf', "$locationDOMPDF" );
 	}
 	
-	// Create WP Notices directory path and URL in wp-content/wp-notices and create db options to store them
+	// Create WP Notices directory path and URL in wp-content/wp-notices
 	$upload_dir = wp_upload_dir(); 
 	$wp_notices_directory = $upload_dir['basedir'].'/wp-notices';
-	update_option( 'vr_wp_notices_directory', "$wp_notices_directory" );
 	$wp_notices_directory_url = content_url().'/uploads/wp-notices';
+	
+	// Set DB options
+	update_option( 'vr_wp_notices_directory', "$wp_notices_directory" );
 	update_option( 'vr_wp_notices_directory_url', "$wp_notices_directory_url" );
 	
 	// Create needed directories and files
@@ -218,20 +221,41 @@ function vr_wp_notices_shortcode( $atts, $content='' ) {
 	$wp_notices_directory = get_option( 'vr_wp_notices_directory' );
 	$wp_notices_directory_url = get_option( 'vr_wp_notices_directory_url' );
 	$file_name = basename(get_permalink()).'-'.mt_rand(); // Add the extension at point of use.
-	
-	$downloadLinks = "<p>Download: <a href='$wp_notices_directory_url/tmp/".$file_name.".html'>HTML</a> | <a href='$wp_notices_directory_url/tmp/".$file_name.".pdf'>PDF</a> | <a href='$wp_notices_directory_url/tmp/".$file_name.".png'>PNG</a><br><small>These links expire hourly.</small></p>";
 
+	$downloadLinks = '';
+	if ( $files ) {
+
+		$files = explode(',', strtolower($files));
+		foreach ($files as $file) {
+
+			switch ($file) {
+			case 'html':
+				$downloadLinks = $downloadLinks." <a class='vr_wp_notices_html' href='$wp_notices_directory_url/tmp/".$file_name.".html'>HTML</a> ";
+				break;
+			case 'pdf':
+				$downloadLinks = $downloadLinks." <a class='vr_wp_notices_pdf' href='$wp_notices_directory_url/tmp/".$file_name.".pdf'>PDF</a> ";
+				break;
+			case 'png':
+				$downloadLinks = $downloadLinks." <a class='vr_wp_notices_html' href='$wp_notices_directory_url/tmp/".$file_name.".png'>PNG</a> ";
+				break;
+			}
+
+		}
+		if ( $downloadLinks ) {
+			$downloadLinks = "<div class='wp-notices-download-links'><p><small>Download:$downloadLinks<br>These links expire hourly.</small></p></div>";
+		}
+	}
+	
 
 	/**
 	*
-	*	Use the input
+	*	Build $output
 	*
 	**/
 
-
 	// Does the user need help?
 	if ( $help ) {
-	
+
 		$help_file = plugin_dir_url( __FILE__ ).'includes/help.html';
 		if ( ! extension_loaded('imagick') ) { $nomagick = '<p>Image creation requires ImageMagick support. Please enable ImageMagick in your server\s PHP configurations.</p>'; } else { $nomagick = ''; }
 
@@ -259,7 +283,7 @@ function vr_wp_notices_shortcode( $atts, $content='' ) {
 	*
 	**/
 
-	// Set CSS
+	// Load custom.css or use inline CSS?
 	if ( substr($css, 0, 1) == '@' ) {
 		$output = "<div class='wp-notices $class' role='alert'>".do_shortcode($content)."</div>".$help;
 		if ( $image == '' ) {
@@ -276,9 +300,14 @@ function vr_wp_notices_shortcode( $atts, $content='' ) {
 		$output = "<div class='wp-notices $class' style='$css' role='alert'>".do_shortcode($content)."</div>".$help;
 	}
 
+	
+	/**
+	*
+	* Check who the notice is for and check display times
+	*
+	**/
 
-	// Decide who to display $output to
-
+	// Decide to whom we will display $output
 	if ( $to == 'everyone' ) {
 		$output = $output;
 		$downloadLinks = $downloadLinks;
@@ -302,7 +331,7 @@ function vr_wp_notices_shortcode( $atts, $content='' ) {
 		$downloadLinks = '';
 	}
 
-	// Decide whether we are in date
+	// Decide whether we are in display date
 	
 	if ( ! $start == '' ) {
 
@@ -310,12 +339,19 @@ function vr_wp_notices_shortcode( $atts, $content='' ) {
 		$start = strtotime($start);
 		$end = strtotime($end);
 
-		if ( $now < $start ) { $output = ''; }
-			elseif ( $now > $end ) { $output = ''; }
-			else { $output = $output; }
+		if ( $now < $start ) { $output = ''; $downloadLinks = ''; }
+			elseif ( $now > $end ) { $output = ''; $downloadLinks = ''; }
+			else { $output = $output; $downloadLinks = $downloadLinks;}
 
 	}
 
+	
+	/**
+	*
+	* Are we converting $output to an image?
+	*
+	**/
+	
 	// If $output (as $output is decided above) is needed in image format we will convert it to an image whether $output is empty or not.
 	if ( $image == 'portrait' || $image == 'landscape' || substr($image, 0, 1) == '@' && extension_loaded('imagick') ) {
 	
@@ -333,18 +369,14 @@ function vr_wp_notices_shortcode( $atts, $content='' ) {
 		if ( substr($css, 0, 1) == '@' ) {
 			$css = substr($css, 1);
 			$css = "<link rel='stylesheet' id='vr-wp-notices-css-css' href='$wp_notices_directory_url/css/custom.css' type='text/css' media='all'>";
-		}
-		else
-		{
+		} else {
 			$css = '';
 		}
 		
 		// Link to style.css that ships with WP Notices
 		if ( ! $class = '' ) {
 			$defaultCSS = "<link rel='stylesheet' id='vr-wp-notices-css-css' href='".plugins_url( 'css/style.css', __FILE__ )."' type='text/css' media='all'>";
-		}
-		else
-		{
+		} else {
 			$defaultCSS = '';
 		}
 			
@@ -416,12 +448,7 @@ function vr_wp_notices_shortcode( $atts, $content='' ) {
 		$imagick->clear();
 		$imagick->destroy();
 
-		if ( $files ) {
-			$output = "<img class='wp-notices-image' src='$file_png_url' alt='' /><div class='wp-notices-links'>$downloadLinks</div>";
-		} else {
-			$output = "<img class='wp-notices-image' src='$file_png_url' alt='' />";
-		}
-
+		$output = "<img class='wp-notices-image' src='$file_png_url' alt='' />$downloadLinks";
 	}
 
 	return $output;
@@ -456,5 +483,25 @@ if ( ! is_admin() ) {
 		array_map('unlink', glob("$wp_notices_directory/tmp/*"));
 	}
 	add_action('vr_wp_notices_cron', 'vr_wp_notices_cron_action');
+	
+} else {
+
+	/**
+	*
+	*	Create Action Links for Plugin List Page
+	*
+	**/
+
+	function vr_wp_notices_add_action_links( $links ) {
+
+		// Add link to settings page
+		$mylinks = array(
+			'<a href="' . plugin_dir_url( __FILE__ ).'includes/help.html' . '" target="_blank">Help File</a>',
+			'<a href="https://paypal.me/vr51" target="_blank">Donate</a>'
+		);
+		return array_merge( $links, $mylinks );
+		
+	}
+	add_filter( 'plugin_action_links_' . plugin_basename(__FILE__), 'vr_wp_notices_add_action_links' );
 	
 }
