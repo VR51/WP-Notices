@@ -16,7 +16,7 @@ Notices can be targeted by WordPress user role (admin, editor, contributor, auth
 
 Notice messages can be displayed as text or each message can be automatically converted to a PNG image. Useful for displaying advisory notices that you prefer search engines do not index as text. Useful for creating post images on the fly. The image directory is wiped periodically so download and move images to your WP media library if you want to keep them.
 
-The time or period of display can be set using natural language. Display notices forever (by leaving out a start and end time period), from a set start time to an open ended end date, for a specific day, range of days for one time or ad infinitum. For example start=\Thursday 8am\ End=\Friday\ would display a notice every Thursday from 8am until start of Friday or start=\Thursday 8am\ End=\Friday 4:30pm\ would display a notice every Thursday from 8am until 4:30pm Friday; you can even say start=\Wednesday 1st June 2016 8am\ End=\Friday 24th June 2016\.
+The time or period of display can be set using natural language. Display notices forever (by leaving out a start and end time period), from a set start time to an open ended end date, for a specific day, range of days for one time or ad infinnitum. For example start=\Thursday 8am\ End=\Friday\ would display a notice every Thursday from 8am until start of Friday or start=\Thursday 8am\ End=\Friday 4:30pm\ would display a notice every Thursday from 8am until 4:30pm Friday; you can even say start=\Wednesday 1st June 2016 8am\ End=\Friday 24th June 2016\.
 
 The notice can be styled to change its appearance. There are four inbuilt style classes (alert-success, alert-info, alert-warning and alert-danger).
 
@@ -154,6 +154,7 @@ Install as you would any other WordPress plugin.
 
 - Added option to choose which download links to display of the files for PDF, HTML and PNG.
 - Separated file creation into individual functions. Now file generation can happen whether images are created or not, but only if files='' is set.
+- Added multisite compatibility.
 
 1.2.0 - 25th June 2016
 
