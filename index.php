@@ -10,7 +10,7 @@ Donate link: https://paypal.me/vr51
 Description: Display notice messages to visitors, admin users, editors, contributors and anonymous readers. Notices can last forever, display between specific dates or at specified times of specified days regularly. Automatically convert notices to images if desired.
 Requires at least: 4.0.0
 Tested up to: 4.5.3
-Stable tag: 1.2.0
+Stable tag: 1.2.1
 Version: 1.2.1
 License: GPL3
 */
@@ -82,10 +82,11 @@ function vr_wp_notices_install() {
 		rename( plugin_dir_path( __FILE__ ).'includes/dompdf', "$locationDOMPDF" );
 	}
 	
-	// Create WP Notices directory path and URL in wp-content/wp-notices
+	// Create WP Notices directory path and URL in wp-content/wp-notices/BLOG ID
 	$upload_dir = wp_upload_dir(); 
-	$wp_notices_directory = $upload_dir['basedir'].'/wp-notices';
-	$wp_notices_directory_url = content_url().'/uploads/wp-notices';
+	$blog_id = get_current_blog_id();
+	$wp_notices_directory = $upload_dir['basedir']."/wp-notices/$blog_id";
+	$wp_notices_directory_url = content_url()."/uploads/wp-notices/$blog_id";
 	
 	// Set DB options
 	update_option( 'vr_wp_notices_directory', "$wp_notices_directory" );
@@ -206,10 +207,14 @@ function vr_wp_notices_shortcode( $atts, $content='' ) {
 
 	$help = sanitize_text_field( $atts['help'] );
 		if ( $help == 'admin' ) { $help='administrator'; } // Set admin alias
+		if ( $help == 'loggedin' ) { $help='read'; } // Set loggedin alias
 	$content = wp_kses_post( $content );
 
 	// Load Script Files in Footer
 	add_action( 'get_footer', 'register_vr_wp_notices_files', 1 );
+	
+	// Check for ImageMagick
+	if ( extension_loaded('imagick') ) { $magick = 'true' ; } else { $magick = 'false'; }
 
 
 	/**
@@ -236,7 +241,7 @@ function vr_wp_notices_shortcode( $atts, $content='' ) {
 				$downloadLinks = $downloadLinks." <a class='vr_wp_notices_pdf' href='$wp_notices_directory_url/tmp/".$file_name.".pdf'>PDF</a> ";
 				break;
 			case 'png':
-				$downloadLinks = $downloadLinks." <a class='vr_wp_notices_html' href='$wp_notices_directory_url/tmp/".$file_name.".png'>PNG</a> ";
+				if ( $magick == 'true' ) { $downloadLinks = $downloadLinks." <a class='vr_wp_notices_html' href='$wp_notices_directory_url/tmp/".$file_name.".png'>PNG</a> "; }
 				break;
 			}
 
@@ -257,7 +262,7 @@ function vr_wp_notices_shortcode( $atts, $content='' ) {
 	if ( $help ) {
 
 		$help_file = plugin_dir_url( __FILE__ ).'includes/help.html';
-		if ( ! extension_loaded('imagick') ) { $nomagick = '<p>Image creation requires ImageMagick support. Please enable ImageMagick in your server\s PHP configurations.</p>'; } else { $nomagick = ''; }
+		if ( $magick == 'false' ) { $nomagick = '<p>Image creation requires ImageMagick support. Please enable ImageMagick in your server\s PHP configurations.</p>'; } else { $nomagick = ''; }
 
 		// Display to username?
 		if ( substr($help, 0, 1) == '@' ) {
@@ -345,25 +350,16 @@ function vr_wp_notices_shortcode( $atts, $content='' ) {
 
 	}
 
-	
+
 	/**
 	*
-	* Are we converting $output to an image?
+	* File Creation Functions (HTML, PDF, PNG <--- Always call in this order: the output of one is fed into the next)
 	*
 	**/
-	
-	// If $output (as $output is decided above) is needed in image format we will convert it to an image whether $output is empty or not.
-	if ( $image == 'portrait' || $image == 'landscape' || substr($image, 0, 1) == '@' && extension_loaded('imagick') ) {
-	
-		/**
-		*
-		*	Create HTML file
-		*	Convert HTML to PDF
-		*	Convert PDF to image
-		*
-		**/
-		
-		// Create HTML, PDF and PNG file for the notice
+
+	// HTML File Generation
+
+	function vr_wp_notices_make_html( $css='', $wp_notices_directory_url='', $class='', $output='', $wp_notices_directory='', $file_name='' ) {
 
 		// Determine CSS file to link
 		if ( substr($css, 0, 1) == '@' ) {
@@ -379,13 +375,20 @@ function vr_wp_notices_shortcode( $atts, $content='' ) {
 		} else {
 			$defaultCSS = '';
 		}
-			
-		// Insert $output into HTML doc
-		$output='<html '.get_language_attributes().'><head><meta charset="UTF-8">'.$defaultCSS.$css.'</head><body>'.$output.'</body></html>';
-		file_put_contents( "$wp_notices_directory/tmp/$file_name.html", "$output");
 
-		/* Convert $output to PDF */
-		
+		// Insert $output into HTML doc
+		$file_html = '<html '.get_language_attributes().'><head><meta charset="UTF-8">'.$defaultCSS.$css.'</head><body>'.$output.'</body></html>';
+		file_put_contents( "$wp_notices_directory/tmp/$file_name.html", "$file_html");
+
+		return $file_html;
+
+	}
+
+
+	// PDF File Generation. Returns path to PDF file
+
+	function vr_wp_notices_make_pdf( $html5='', $image='', $format='', $file_html='', $wp_notices_directory='', $file_name='' ) {
+	
 		// instantiate and use the dompdf class
 		$dompdf = new Dompdf();
 		
@@ -416,7 +419,7 @@ function vr_wp_notices_shortcode( $atts, $content='' ) {
 		}
 		
 		// Process HTML to PDF
-		$dompdf->loadHtml($output);
+		$dompdf->loadHtml($file_html);
 		// $dompdf->loadHtmlFile($wp_notices_directory_url.'/tmp/pdf.html');
 
 		// Render the HTML as PDF
@@ -428,27 +431,54 @@ function vr_wp_notices_shortcode( $atts, $content='' ) {
 		$output = $dompdf->output();
 		
 		/* Push $output to PDF file */
-		$file_pdf = $wp_notices_directory.'/tmp/'.$file_name.'.pdf';
-		file_put_contents( "$file_pdf", "$output" );
+		$file_pdf_path = $wp_notices_directory.'/tmp/'.$file_name.'.pdf';
+		file_put_contents( "$file_pdf_path", "$output" );
 
-		// Convert PDF to image
-		// ImageMagick reference http://php.net/manual/en/imagick.displayimage.php
+		return $file_pdf_path;
+	}
+
+
+	// PNG File Generation. Returns location of PNG file.
+
+	function vr_wp_notices_make_png( $wp_notices_directory='', $wp_notices_directory_url='', $file_name='', $file_pdf_path='' ) {
+		// http://php.net/manual/en/imagick.displayimage.php
 		
-		$file_png = $wp_notices_directory.'/tmp/'.$file_name.'.png';
+		$file_png_path = $wp_notices_directory.'/tmp/'.$file_name.'.png';
 		$file_png_url = $wp_notices_directory_url.'/tmp/'.$file_name.'.png';
 		
 		$imagick = new Imagick();
 		$imagick->setResolution(90,90);
 		$imagick->setCompressionQuality(100);
-		$imagick->readImage($file_pdf);
+		$imagick->readImage($file_pdf_path);
 		$imagick->setImageFormat( "png" );
 		$imagick->trimImage(0);
 		$imagick->setImagePage(0, 0, 0, 0); 
-		$imagick->writeImage($file_png);
+		$imagick->writeImage($file_png_path);
 		$imagick->clear();
 		$imagick->destroy();
 
+		return $file_png_url;
+
+	}
+	
+	/**
+	*
+	* Are we displaying $output as an image?
+	*
+	**/
+	
+	if ( $image == 'portrait' || $image == 'landscape' || substr($image, 0, 1) == '@' && $magick == 'true' ) {
+
+		// Generate HTML, feed HTML into PDF, feed PDF into PNG
+		$file_html = vr_wp_notices_make_html( $css, $wp_notices_directory_url, $class, $output, $wp_notices_directory, $file_name );
+		$file_pdf_path = vr_wp_notices_make_pdf( $html5, $image, $format, $file_html, $wp_notices_directory, $file_name );
+		$file_png_url = vr_wp_notices_make_png( $wp_notices_directory, $wp_notices_directory_url, $file_name, $file_pdf_path );
+		
 		$output = "<img class='wp-notices-image' src='$file_png_url' alt='' />$downloadLinks";
+
+	} elseif ( $files ) {
+		$file_html_path = vr_wp_notices_make_html( $css, $wp_notices_directory_url, $class, $output, $wp_notices_directory, $file_name );
+		vr_wp_notices_make_pdf( $html5, $image, $format, $file_html_path, $wp_notices_directory, $file_name );
 	}
 
 	return $output;
