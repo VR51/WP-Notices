@@ -473,7 +473,7 @@ class vrWPnoticesShortcodeClass {
 		*
 		**/
 
-		if ( $image == 'portrait' || $image == 'landscape' || substr($image, 0, 1) == '@' && $magick == 'true' ) { // Create files and return image as output
+		if ( $image == 'portrait' || $image == 'landscape' || substr($image, 0, 1) == '@' && $magick == 'true' && !empty($output) ) { // Create files and return image as output
 
 			// Generate HTML, feed HTML into PDF, feed PDF into PNG
 			$file_html = vr_wp_notices_make_html( $css, $wp_notices_directory_url, $class, $output, $wp_notices_directory, $file_name );
@@ -482,7 +482,7 @@ class vrWPnoticesShortcodeClass {
 
 			$output = "<div class='wp-notices-image-wrap'><img class='wp-notices-image' src='$file_png_url' alt='' />$downloadLinks</div>";
 
-		} elseif ( $files ) { // Just create files, return no output.
+		} elseif ( $files && !empty($output) ) { // Just create files, return no output.
 			$file_html = vr_wp_notices_make_html( $css, $wp_notices_directory_url, $class, $output, $wp_notices_directory, $file_name );
 			vr_wp_notices_make_pdf( $html5, $image, $format, $file_html, $wp_notices_directory, $file_name );
 			$output = $output.$downloadLinks;
