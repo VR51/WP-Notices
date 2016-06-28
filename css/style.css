@@ -76,3 +76,8 @@
 .alert-danger .alert-link {
 	color: #843534;
 }
+
+
+.wp-notices-outer-wrap {
+	display: inline-block;
+}

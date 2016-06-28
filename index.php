@@ -50,7 +50,7 @@ License: GPL3
 *
 *		Database option key prefix = vr_wp_notices_
 *
-*		CSS Classes: wp-notices, wp-notices-image, wp-notices-links
+*		CSS Classes: wp-notices-outer-wrap, wp-notices, wp-notices-image-wrap, wp-notices-image, wp-notices-links, 
 *
 **/
 
@@ -153,338 +153,346 @@ if ( file_exists( plugin_dir_path( __FILE__ ).'includes/dompdf/autoload.inc.php'
 // reference the Dompdf namespace
 use Dompdf\Dompdf;
 
-
-/**
-*
-* Create the shortcode
-*
-**/
-
-function vr_wp_notices_shortcode( $atts, $content='' ) {
+class vrWPnoticesShortcodeClass {
 
 	/**
 	*
-	*	Set allowed shortcode attributes and default values
+	* Create the shortcode
 	*
 	**/
- 
-	$atts = shortcode_atts(
-		array(
- 
-			'to' => 'administrator', // User role https://codex.wordpress.org/Roles_and_Capabilities (options: any WordPress user role, any WordPress capability, @ any username and the aliases: admin, loggedin and everyone)
-			'class' => '', // Plugin style class. No commas or full-stops needed (in built options: alert, alert-info, alert-success, alert-danger and alert-warning)
-			'css' => '', // CSS file to load or styles to use inline.
-			'start' => '', // Message launch date
-			'end' => 'Tomorrow', // Message expiry date
-			'image' => '', // Convert the notice to an image (options: portrait or landscape)
-			'format' => 'c4', // Set the PDF page size
-			'files' => '', // Show file download links
-			'html5' => 'true', // Enable HTML5 support (pptions: are true or false).
-			'help' => '' // Display help reference information for this shortcode
- 
-		), $atts, 'wp-notice'
-	);
 
-	/**
-	*
-	*	Sanitize user input.
-	*	Create aliases for roles and capabilities.
-	*
-	**/
- 
-	$to = sanitize_user( $atts['to'], 1 );
-		if ( $to == 'admin' ) { $to='administrator'; } // Set admin alias
-		if ( $to == 'anon' ) { $to='anonymous'; } // Set anon alias
-		if ( $to == 'loggedin' ) { $to='read'; } // Set loggedin alias
-	$class = sanitize_text_field( $atts['class'] );
-	$css = wp_strip_all_tags( $atts['css'] );
-	$start = sanitize_text_field( $atts['start'] );
-	$end = sanitize_text_field( $atts['end'] );
-	$image = sanitize_text_field( $atts['image'] );
-	$format = sanitize_text_field( $atts['format'] );
-	$files = sanitize_text_field( $atts['files'] );
-	$html5 = sanitize_text_field( $atts['html5'] );
+	public static function vr_wp_notices_shortcode( $atts, $content='' ) {
 
-	$help = sanitize_text_field( $atts['help'] );
-		if ( $help == 'admin' ) { $help='administrator'; } // Set admin alias
-		if ( $help == 'loggedin' ) { $help='read'; } // Set loggedin alias
-	$content = wp_kses_post( $content );
-
-	// Load Script Files in Footer
-	add_action( 'get_footer', 'register_vr_wp_notices_files', 1 );
+		/**
+		*
+		*	Set allowed shortcode attributes and default values
+		*
+		**/
 	
-	// Check for ImageMagick
-	if ( extension_loaded('imagick') ) { $magick = 'true' ; } else { $magick = 'false'; }
+		$atts = shortcode_atts(
+			array(
+	
+				'to' => 'administrator', // User role https://codex.wordpress.org/Roles_and_Capabilities (options: any WordPress user role, any WordPress capability, @ any username and the aliases: admin, loggedin and everyone)
+				'class' => '', // Plugin style class. No commas or full-stops needed (in built options: alert, alert-info, alert-success, alert-danger and alert-warning)
+				'css' => '', // CSS file to load or styles to use inline.
+				'start' => '', // Message launch date
+				'end' => 'Tomorrow', // Message expiry date
+				'image' => '', // Convert the notice to an image (options: portrait or landscape)
+				'format' => 'c4', // Set the PDF page size
+				'files' => '', // Show file download links
+				'html5' => 'true', // Enable HTML5 support (pptions: are true or false).
+				'help' => '' // Display help reference information for this shortcode
+	
+			), $atts, 'wp-notice'
+		);
 
+		/**
+		*
+		*	Sanitize user input.
+		*	Create aliases for roles and capabilities.
+		*
+		**/
+	
+		$to = sanitize_user( $atts['to'], 1 );
+			if ( $to == 'admin' ) { $to='administrator'; } // Set admin alias
+			if ( $to == 'anon' ) { $to='anonymous'; } // Set anon alias
+			if ( $to == 'loggedin' ) { $to='read'; } // Set loggedin alias
+		$class = sanitize_text_field( $atts['class'] );
+		$css = wp_strip_all_tags( $atts['css'] );
+		$start = sanitize_text_field( $atts['start'] );
+		$end = sanitize_text_field( $atts['end'] );
+		$image = sanitize_text_field( $atts['image'] );
+		$format = sanitize_text_field( $atts['format'] );
+		$files = sanitize_text_field( $atts['files'] );
+		$html5 = sanitize_text_field( $atts['html5'] );
 
-	/**
-	*
-	*	Get DB options, create file name and build download links
-	*
-	**/
+		$help = sanitize_text_field( $atts['help'] );
+			if ( $help == 'admin' ) { $help='administrator'; } // Set admin alias
+			if ( $help == 'loggedin' ) { $help='read'; } // Set loggedin alias
+		$content = wp_kses_post( $content );
 
-	$wp_notices_directory = get_option( 'vr_wp_notices_directory' );
-	$wp_notices_directory_url = get_option( 'vr_wp_notices_directory_url' );
-	$file_name = basename(get_permalink()).'-'.mt_rand(); // Add the extension at point of use.
+		// Load Script Files in Footer
+		add_action( 'get_footer', 'register_vr_wp_notices_files', 1 );
+		
+		// Check for ImageMagick
+		if ( extension_loaded('imagick') ) { $magick = 'true' ; } else { $magick = 'false'; }
 
-	$downloadLinks = '';
-	if ( $files ) {
+		// Generate random suffix
+		$classConstructorSuffix = mt_rand();
 
-		$files = explode(',', strtolower($files));
-		foreach ($files as $file) {
+		/**
+		*
+		*	Get DB options, create file name and build download links
+		*
+		**/
 
-			switch ($file) {
-			case 'html':
-				$downloadLinks = $downloadLinks." <a class='vr_wp_notices_html' href='$wp_notices_directory_url/tmp/".$file_name.".html'>HTML</a> ";
-				break;
-			case 'pdf':
-				$downloadLinks = $downloadLinks." <a class='vr_wp_notices_pdf' href='$wp_notices_directory_url/tmp/".$file_name.".pdf'>PDF</a> ";
-				break;
-			case 'png':
-				if ( $magick == 'true' ) { $downloadLinks = $downloadLinks." <a class='vr_wp_notices_html' href='$wp_notices_directory_url/tmp/".$file_name.".png'>PNG</a> "; }
-				break;
+		$wp_notices_directory = get_option( 'vr_wp_notices_directory' );
+		$wp_notices_directory_url = get_option( 'vr_wp_notices_directory_url' );
+		$file_name = basename(get_permalink()).'-'.mt_rand(); // Add the extension at point of use.
+
+		$downloadLinks = '';
+		if ( $files ) {
+
+			$files = explode(',', strtolower($files));
+			foreach ($files as $file) {
+
+				switch ($file) {
+				case 'html':
+					$downloadLinks = $downloadLinks." <a class='vr_wp_notices_html' href='$wp_notices_directory_url/tmp/".$file_name.".html' target='_blank'>HTML</a> ";
+					break;
+				case 'pdf':
+					$downloadLinks = $downloadLinks." <a class='vr_wp_notices_pdf' href='$wp_notices_directory_url/tmp/".$file_name.".pdf' target='_blank'>PDF</a> ";
+					break;
+				case 'png':
+					if ( $magick == 'true' ) { $downloadLinks = $downloadLinks." <a class='vr_wp_notices_html' href='$wp_notices_directory_url/tmp/".$file_name.".png' target='_blank'>PNG</a> "; }
+					break;
+				}
+
+			}
+			if ( $downloadLinks ) {
+				$downloadLinks = "<div class='wp-notices-download-links wp-caption'><p><small>Download:$downloadLinks<br>These links expire hourly.</small></p></div>";
+			}
+		}
+		
+
+		/**
+		*
+		*	Build $output
+		*
+		**/
+
+		// Does the user need help?
+		if ( $help ) {
+
+			$help_file = plugin_dir_url( __FILE__ ).'includes/help.html';
+			if ( $magick == 'false' ) { $nomagick = '<p>Image creation requires ImageMagick support. Please enable ImageMagick in your server\s PHP configurations.</p>'; } else { $nomagick = ''; }
+
+			// Display to username?
+			if ( substr($help, 0, 1) == '@' ) {
+				$user = substr($help, 1);
+				$current_user = wp_get_current_user();
+				if ( "$user" == $current_user->user_login ) {
+					$help = "<div class='alert alert-info vr_wp_notices_help'><a href='$help_file' target='_blank'>SHORTCODE USAGE HELP</a></div>".$nomagick;
+				}
+			} // Display to userole?
+			elseif ( current_user_can( "$help" ) ) {
+					$help = "<div class='alert alert-info vr_wp_notices_help'><a href='$help_file' target='_blank'>SHORTCODE USAGE HELP</a></div>".$nomagick;
+			}
+			else {
+				$help = '';
 			}
 
 		}
-		if ( $downloadLinks ) {
-			$downloadLinks = "<div class='wp-notices-download-links'><p><small>Download:$downloadLinks<br>These links expire hourly.</small></p></div>";
-		}
-	}
-	
 
-	/**
-	*
-	*	Build $output
-	*
-	**/
 
-	// Does the user need help?
-	if ( $help ) {
+		/**
+		*
+		* Format $output
+		*
+		**/
 
-		$help_file = plugin_dir_url( __FILE__ ).'includes/help.html';
-		if ( $magick == 'false' ) { $nomagick = '<p>Image creation requires ImageMagick support. Please enable ImageMagick in your server\s PHP configurations.</p>'; } else { $nomagick = ''; }
-
-		// Display to username?
-		if ( substr($help, 0, 1) == '@' ) {
-			$user = substr($help, 1);
-			$current_user = wp_get_current_user();
-			if ( "$user" == $current_user->user_login ) {
-				$help = "<div class='alert alert-info'><a href='$help_file' target='_blank'>SHORTCODE USAGE HELP</a></div>".$nomagick;
+		// Load custom.css or use inline CSS?
+		if ( substr($css, 0, 1) == '@' ) {
+			$output = "<div class='wp-notices $class' role='alert'>".do_shortcode($content)."</div>";
+			if ( $image == '' ) {
+				$css = substr($css, 1);
+				function vr_wp_notices_footer_css_link() {
+					$wp_notices_directory_url = get_option( 'vr_wp_notices_directory_url' );
+					$css = "<link rel='stylesheet' id='vr-wp-notices-css-css-footer' href='$wp_notices_directory_url/css/custom.css' type='text/css' media='all'>";
+					echo $css;
+				}
+				add_action('wp_footer', 'vr_wp_notices_footer_css_link', 99 );
+				
 			}
-		} // Display to userole?
-		elseif ( current_user_can( "$help" ) ) {
-				$help = "<div class='alert alert-info'><a href='$help_file' target='_blank'>SHORTCODE USAGE HELP</a></div>".$nomagick;
-		}
-		else {
-			$help = '';
+		} else {
+			$output = "<div class='wp-notices $class' style='$css' role='alert'>".do_shortcode($content)."</div>";
 		}
 
-	}
+		
+		/**
+		*
+		* Check who the notice is for and check display times
+		*
+		**/
 
-
-	/**
-	*
-	* Format $output
-	*
-	**/
-
-	// Load custom.css or use inline CSS?
-	if ( substr($css, 0, 1) == '@' ) {
-		$output = "<div class='wp-notices $class' role='alert'>".do_shortcode($content)."</div>".$help;
-		if ( $image == '' ) {
-			$css = substr($css, 1);
-			function vr_wp_notices_footer_css_link() {
-				$wp_notices_directory_url = get_option( 'vr_wp_notices_directory_url' );
-				$css = "<link rel='stylesheet' id='vr-wp-notices-css-css-footer' href='$wp_notices_directory_url/css/custom.css' type='text/css' media='all'>";
-				echo $css;
-			}
-			add_action('wp_footer', 'vr_wp_notices_footer_css_link', 99 );
-			
-		}
-	} else {
-		$output = "<div class='wp-notices $class' style='$css' role='alert'>".do_shortcode($content)."</div>".$help;
-	}
-
-	
-	/**
-	*
-	* Check who the notice is for and check display times
-	*
-	**/
-
-	// Decide to whom we will display $output
-	if ( $to == 'everyone' ) {
-		$output = $output;
-		$downloadLinks = $downloadLinks;
-	}
-	elseif ( $to == 'anonymous' && ! is_user_logged_in() ) {
-		$output = $output;
-		$downloadLinks = $downloadLinks;
-	} // Display to username?
-	elseif ( substr($to, 0, 1) == '@' ) {
-		$user = substr($to, 1);
-		$current_user = wp_get_current_user();
-		if ( "$user" == $current_user->user_login ) {
+		// Decide to whom we will display $output
+		// If new data needs to be checked it should be passed through here. Will make this a function later...
+		if ( $to == 'everyone' ) {
 			$output = $output;
 			$downloadLinks = $downloadLinks;
 		}
-	} // Display to userole?
-	elseif ( current_user_can( "$to" ) ) {
+		elseif ( $to == 'anonymous' && ! is_user_logged_in() ) {
 			$output = $output;
-	} else {
-		$output = '';
-		$downloadLinks = '';
-	}
-
-	// Decide whether we are in display date
-	
-	if ( ! $start == '' ) {
-
-		$now = time();
-		$start = strtotime($start);
-		$end = strtotime($end);
-
-		if ( $now < $start ) { $output = ''; $downloadLinks = ''; }
-			elseif ( $now > $end ) { $output = ''; $downloadLinks = ''; }
-			else { $output = $output; $downloadLinks = $downloadLinks;}
-
-	}
-
-
-	/**
-	*
-	* File Creation Functions (HTML, PDF, PNG <--- Always call in this order: the output of one is fed into the next)
-	*
-	**/
-
-	// HTML File Generation
-
-	function vr_wp_notices_make_html( $css='', $wp_notices_directory_url='', $class='', $output='', $wp_notices_directory='', $file_name='' ) {
-
-		// Determine CSS file to link
-		if ( substr($css, 0, 1) == '@' ) {
-			$css = substr($css, 1);
-			$css = "<link rel='stylesheet' id='vr-wp-notices-css-css' href='$wp_notices_directory_url/css/custom.css' type='text/css' media='all'>";
+			$downloadLinks = $downloadLinks;
+		} // Display to username?
+		elseif ( substr($to, 0, 1) == '@' ) {
+			$user = substr($to, 1);
+			$current_user = wp_get_current_user();
+			if ( "$user" == $current_user->user_login ) {
+				$output = $output;
+				$downloadLinks = $downloadLinks;
+			}
+		} // Display to userole?
+		elseif ( current_user_can( "$to" ) ) {
+				$output = $output;
 		} else {
-			$css = '';
-		}
-		
-		// Link to style.css that ships with WP Notices
-		if ( ! $class = '' ) {
-			$defaultCSS = "<link rel='stylesheet' id='vr-wp-notices-css-css' href='".plugins_url( 'css/style.css', __FILE__ )."' type='text/css' media='all'>";
-		} else {
-			$defaultCSS = '';
+			$output = '';
+			$downloadLinks = '';
 		}
 
-		// Insert $output into HTML doc
-		$file_html = '<html '.get_language_attributes().'><head><meta charset="UTF-8">'.$defaultCSS.$css.'</head><body>'.$output.'</body></html>';
-		file_put_contents( "$wp_notices_directory/tmp/$file_name.html", "$file_html");
-
-		return $file_html;
-
-	}
-
-
-	// PDF File Generation. Returns path to PDF file
-
-	function vr_wp_notices_make_pdf( $html5='', $image='', $format='', $file_html='', $wp_notices_directory='', $file_name='' ) {
-	
-		// instantiate and use the dompdf class
-		$dompdf = new Dompdf();
+		// Decide whether we are in display date
 		
-		$context = stream_context_create([ 
-			'ssl' => [ 
-				'verify_peer' => FALSE, 
-				'verify_peer_name' => FALSE,
-				'allow_self_signed'=> TRUE 
-			] 
-		]);
-		$dompdf->setHttpContext($context);
-		
-		if ( $html5 == 'true' ) {
-			$dompdf->set_option('isPhpEnabled', 'TRUE');
+		if ( ! $start == '' ) {
+
+			$now = time();
+			$start = strtotime($start);
+			$end = strtotime($end);
+
+			if ( $now < $start ) { $output = ''; $downloadLinks = ''; }
+				elseif ( $now > $end ) { $output = ''; $downloadLinks = ''; }
+				else { $output = $output; $downloadLinks = $downloadLinks;}
+
 		}
-		$dompdf->set_option('isRemoteEnabled', 'TRUE');
-		
-		if ( substr($image, 0, 1) == '@' ) {
-			$image = substr($image, 1);
-			// Confirm we have numbers
-				if ( ! intval($image) ) { $image = '400'; } // Check we have anumber otherwise use 400pt as default
-				if ( substr($format, 0, 1) == '@' ) { $format = substr($format, 1); } // Remove @ from $format. Someone's likely to put one in...
-				if ( ! intval($format) ) { $format = '400'; }
-			$custom = array(0,0,$image,$format);
-			$dompdf->setPaper($custom);
-		} else {
-			$dompdf->setPaper("$format", "$image");
+
+
+		/**
+		*
+		* File Creation Functions (HTML, PDF, PNG <--- Always call in this order: the output of one is fed into the next)
+		*
+		**/
+
+		// HTML File Generation
+		if ( ! function_exists('vr_wp_notices_make_html') ) {
+			function vr_wp_notices_make_html( $css='', $wp_notices_directory_url='', $class='', $output='', $wp_notices_directory='', $file_name='' ) {
+
+				// Determine CSS file to link
+				if ( substr($css, 0, 1) == '@' ) {
+					$css = substr($css, 1);
+					$css = "<link rel='stylesheet' id='vr-wp-notices-css-css' href='$wp_notices_directory_url/css/custom.css' type='text/css' media='all'>";
+				} else {
+					$css = '';
+				}
+				
+				// Link to style.css that ships with WP Notices
+				if ( ! $class = '' ) {
+					$defaultCSS = "<link rel='stylesheet' id='vr-wp-notices-css-css' href='".plugins_url( 'css/style.css', __FILE__ )."' type='text/css' media='all'>";
+				} else {
+					$defaultCSS = '';
+				}
+
+				// Insert $output into HTML doc
+				$file_html = '<html '.get_language_attributes().'><head><meta charset="UTF-8">'.$defaultCSS.$css.'</head><body>'.$output.'</body></html>';
+				file_put_contents( "$wp_notices_directory/tmp/$file_name.html", "$file_html");
+
+				return $file_html;
+
+			}
+		}
+
+
+		// PDF File Generation. Returns path to PDF file
+		if ( ! function_exists('vr_wp_notices_make_pdf') ) {
+			function vr_wp_notices_make_pdf( $html5='', $image='', $format='', $file_html='', $wp_notices_directory='', $file_name='' ) {
+			
+				// instantiate and use the dompdf class
+				$dompdf = new Dompdf();
+				
+				$context = stream_context_create([ 
+					'ssl' => [ 
+						'verify_peer' => FALSE, 
+						'verify_peer_name' => FALSE,
+						'allow_self_signed'=> TRUE 
+					] 
+				]);
+				$dompdf->setHttpContext($context);
+				
+				if ( $html5 == 'true' ) {
+					$dompdf->set_option('isPhpEnabled', 'TRUE');
+				}
+				$dompdf->set_option('isRemoteEnabled', 'TRUE');
+				
+				if ( substr($image, 0, 1) == '@' ) {
+					$image = substr($image, 1);
+					// Confirm we have numbers
+						if ( ! intval($image) ) { $image = '400'; } // Check we have anumber otherwise use 400pt as default
+						if ( substr($format, 0, 1) == '@' ) { $format = substr($format, 1); } // Remove @ from $format. Someone's likely to put one in...
+						if ( ! intval($format) ) { $format = '400'; }
+					$custom = array(0,0,$image,$format);
+					$dompdf->setPaper($custom);
+				} else {
+					$dompdf->setPaper("$format", "$image");
+				}
+
+				// Process HTML to PDF
+				$dompdf->loadHtml($file_html);
+				// $dompdf->loadHtmlFile($wp_notices_directory_url.'/tmp/pdf.html');
+
+				// Render the HTML as PDF
+				$dompdf->render();
+
+				// Output the generated PDF to Browser
+				// $output = $dompdf->stream( "output.pdf", array("Attachment" => 0) );
+				
+				$output = $dompdf->output();
+				
+				/* Push $output to PDF file */
+				$file_pdf_path = $wp_notices_directory.'/tmp/'.$file_name.'.pdf';
+				file_put_contents( "$file_pdf_path", "$output" );
+
+				return $file_pdf_path;
+			}
+		}
+
+		// PNG File Generation. Returns location of PNG file.
+		if ( ! function_exists('vr_wp_notices_make_png') ) {
+			function vr_wp_notices_make_png( $wp_notices_directory='', $wp_notices_directory_url='', $file_name='', $file_pdf_path='' ) {
+				// http://php.net/manual/en/imagick.displayimage.php
+				
+				$file_png_path = $wp_notices_directory.'/tmp/'.$file_name.'.png';
+				$file_png_url = $wp_notices_directory_url.'/tmp/'.$file_name.'.png';
+				
+				$imagick = new Imagick();
+				$imagick->setResolution(90,90);
+				$imagick->setCompressionQuality(100);
+				$imagick->readImage($file_pdf_path);
+				$imagick->setImageFormat( "png" );
+				$imagick->trimImage(0);
+				$imagick->setImagePage(0, 0, 0, 0); 
+				$imagick->writeImage($file_png_path);
+				$imagick->clear();
+				$imagick->destroy();
+
+				return $file_png_url;
+
+			}
+		}
+
+		/**
+		*
+		* Are we displaying $output as an image?
+		*
+		**/
+
+		if ( $image == 'portrait' || $image == 'landscape' || substr($image, 0, 1) == '@' && $magick == 'true' ) { // Create files and return image as output
+
+			// Generate HTML, feed HTML into PDF, feed PDF into PNG
+			$file_html = vr_wp_notices_make_html( $css, $wp_notices_directory_url, $class, $output, $wp_notices_directory, $file_name );
+			$file_pdf_path = vr_wp_notices_make_pdf( $html5, $image, $format, $file_html, $wp_notices_directory, $file_name );
+			$file_png_url = vr_wp_notices_make_png( $wp_notices_directory, $wp_notices_directory_url, $file_name, $file_pdf_path );
+
+			$output = "<div class='wp-notices-image-wrap'><img class='wp-notices-image' src='$file_png_url' alt='' />$downloadLinks</div>";
+
+		} elseif ( $files ) { // Just create files, return no output.
+			$file_html = vr_wp_notices_make_html( $css, $wp_notices_directory_url, $class, $output, $wp_notices_directory, $file_name );
+			vr_wp_notices_make_pdf( $html5, $image, $format, $file_html, $wp_notices_directory, $file_name );
+			$output = $output.$downloadLinks;
 		}
 		
-		// Process HTML to PDF
-		$dompdf->loadHtml($file_html);
-		// $dompdf->loadHtmlFile($wp_notices_directory_url.'/tmp/pdf.html');
-
-		// Render the HTML as PDF
-		$dompdf->render();
-
-		// Output the generated PDF to Browser
-		// $output = $dompdf->stream( "output.pdf", array("Attachment" => 0) );
-		
-		$output = $dompdf->output();
-		
-		/* Push $output to PDF file */
-		$file_pdf_path = $wp_notices_directory.'/tmp/'.$file_name.'.pdf';
-		file_put_contents( "$file_pdf_path", "$output" );
-
-		return $file_pdf_path;
+		return "<div class='wp-notices-outer-wrap'>$output$help</wrap>";
+		// return $output.'Now: '.$now.'<br>Start: '.$start.'<br>End: '.$end.'<br>To: '.$to: // FOR DEBUG
 	}
 
-
-	// PNG File Generation. Returns location of PNG file.
-
-	function vr_wp_notices_make_png( $wp_notices_directory='', $wp_notices_directory_url='', $file_name='', $file_pdf_path='' ) {
-		// http://php.net/manual/en/imagick.displayimage.php
-		
-		$file_png_path = $wp_notices_directory.'/tmp/'.$file_name.'.png';
-		$file_png_url = $wp_notices_directory_url.'/tmp/'.$file_name.'.png';
-		
-		$imagick = new Imagick();
-		$imagick->setResolution(90,90);
-		$imagick->setCompressionQuality(100);
-		$imagick->readImage($file_pdf_path);
-		$imagick->setImageFormat( "png" );
-		$imagick->trimImage(0);
-		$imagick->setImagePage(0, 0, 0, 0); 
-		$imagick->writeImage($file_png_path);
-		$imagick->clear();
-		$imagick->destroy();
-
-		return $file_png_url;
-
-	}
-	
-	/**
-	*
-	* Are we displaying $output as an image?
-	*
-	**/
-	
-	if ( $image == 'portrait' || $image == 'landscape' || substr($image, 0, 1) == '@' && $magick == 'true' ) {
-
-		// Generate HTML, feed HTML into PDF, feed PDF into PNG
-		$file_html = vr_wp_notices_make_html( $css, $wp_notices_directory_url, $class, $output, $wp_notices_directory, $file_name );
-		$file_pdf_path = vr_wp_notices_make_pdf( $html5, $image, $format, $file_html, $wp_notices_directory, $file_name );
-		$file_png_url = vr_wp_notices_make_png( $wp_notices_directory, $wp_notices_directory_url, $file_name, $file_pdf_path );
-		
-		$output = "<img class='wp-notices-image' src='$file_png_url' alt='' />$downloadLinks";
-
-	} elseif ( $files ) {
-		$file_html_path = vr_wp_notices_make_html( $css, $wp_notices_directory_url, $class, $output, $wp_notices_directory, $file_name );
-		vr_wp_notices_make_pdf( $html5, $image, $format, $file_html_path, $wp_notices_directory, $file_name );
-	}
-
-	return $output;
-    // return $output.'Now: '.$now.'<br>Start: '.$start.'<br>End: '.$end.'<br>To: '.$to: // FOR DEBUG
 }
-
 
 /**
 *
@@ -498,7 +506,7 @@ if ( ! is_admin() ) {
 	add_filter( 'widget_text', array( $wp_embed, 'autoembed'), 8 );
 
 	// Shortcode
-	add_shortcode( 'wp-notice', 'vr_wp_notices_shortcode');
+	add_shortcode( 'wp-notice', array( 'vrWPnoticesShortcodeClass', 'vr_wp_notices_shortcode' ) );
 
 	// Register Script Files (loaded in the footer when the shortcode is used).
 	function register_vr_wp_notices_files() {
