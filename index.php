@@ -264,7 +264,7 @@ class vrWPnoticesShortcodeClass {
 		// Does the user need help?
 		if ( $help ) {
 
-			$help_file = plugin_dir_url( __FILE__ ).'includes/help.html';
+			$help_file = plugin_dir_url( __FILE__ ).'help.html';
 			if ( $magick == 'false' ) { $nomagick = '<p>Image creation requires ImageMagick support. Please enable ImageMagick in your server\s PHP configurations.</p>'; } else { $nomagick = ''; }
 
 			// Display to username?
@@ -332,9 +332,11 @@ class vrWPnoticesShortcodeClass {
 				$output = $output;
 				$downloadLinks = $downloadLinks;
 			}
+			$member = 'true';
 		} // Display to userole?
 		elseif ( current_user_can( "$to" ) ) {
 				$output = $output;
+				$member = 'true';
 		} else {
 			$output = '';
 			$downloadLinks = '';
@@ -350,10 +352,13 @@ class vrWPnoticesShortcodeClass {
 
 			if ( $now < $start ) { $output = ''; $downloadLinks = ''; }
 				elseif ( $now > $end ) { $output = ''; $downloadLinks = ''; }
-				else { $output = $output; $downloadLinks = $downloadLinks;}
-
+				else { $output = $output; $downloadLinks = $downloadLinks; $show='true';}
 		}
 
+		// Prevent cache plugins leaking notice messages that are aimed at loggedin users (assuming they pay attention to this constent )
+		if ( $show='true' && $member = 'true' && ! defined('DONOTCACHEPAGE') ) {
+			define('DONOTCACHEPAGE', TRUE);
+		}
 
 		/**
 		*
@@ -534,7 +539,7 @@ if ( ! is_admin() ) {
 
 		// Add link to settings page
 		$mylinks = array(
-			'<a href="' . plugin_dir_url( __FILE__ ).'includes/help.html' . '" target="_blank">Help File</a>',
+			'<a href="' . plugin_dir_url( __FILE__ ).'help.html' . '" target="_blank">Help File</a>',
 			'<a href="https://paypal.me/vr51" target="_blank">Donate</a>'
 		);
 		return array_merge( $links, $mylinks );

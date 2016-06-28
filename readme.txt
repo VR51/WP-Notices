@@ -140,11 +140,19 @@ Install as you would any other WordPress plugin.
 <p>Yes. Either in the CSS or using the background='' attribute.</p>
 
 <strong>Can I use my own CSS?</strong>
-<p>Yes. Use the css='' attribute to add CSS style attributes. Use css='@' to load the custom.css stylesheet. The custom.css stylesheet is in wp-content/wp-uploads/wp-notices/css/custom.css</p>
+<p>Yes. Use the css='' attribute to add CSS style attributes. Use css='@' to load the custom.css stylesheet. The custom.css stylesheet is in wp-content/wp-uploads/wp-notices/SITE-ID/css/custom.css</p>
 <p>We are still deciding whether to allow specific custom CSS files to be called. The option may be added at a future date.</p>
 
 <strong>Why does my notice message not include my CSS styles when image mode is used?</strong>
 <p>The CSS style rules must be loaded through css='' either as inline styles or through the custom.css file. This is because PDF creation (which leads to image creation) takes place outside of the WordPress core code.</p>
+
+<strong>Why do some messages still show after the message has expired?</strong>
+<p>This is caused by a limitation in cache plugins. We can either not cache pages that display notice messages (we're considering adding a nocache='' option but are worried notices shown in widget areas would then cause all pages to not be cached...) or we can ask you to clear the cache for specific pages or clear the cache for the whole site manually. We prefer to ask you to clear the page/site cache if you notice a message is cached too long.</p>
+<p>We do send a 'Do Not Cache' alert to cache plugins for pages that display WP Notices to logged in readers. This prevents leakage to unintended readers.</p>
+
+<strong></strong>
+<p></p>
+
 
 == Screenshots ==
 1. Info Message
@@ -153,8 +161,10 @@ Install as you would any other WordPress plugin.
 1.2.1 - 26th June 2016
 
 - Added option to choose which download links to display of the files for PDF, HTML and PNG.
-- Separated file creation into individual functions. Now file generation can happen whether images are created or not, but only if files='' is set.
+- Separated file creation into individual functions. Now file generation can happen whether images are created or not, but only if files='' is set e.g. files='html,pdf' or files='html,pdf,png'.
 - Added multisite compatibility.
+- Forced no-caching of pages that display content to site members.
+- Began process of converting the plugin into a class.
 
 1.2.0 - 25th June 2016
 

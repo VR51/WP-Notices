@@ -1,0 +1,5 @@
+TinyMCE button
+Visual Composer Integration
+Shortcode cleaner to autodelete shortcode from content after expiration date
+Add nocache='' option
+Refactor code. Convert the display/time functions to filter functions then rearrange the rest of the code to pass all output through the filters ready for the filters to return output. Maybe use function calls within the filters to request input; this way the code only runs if the context is good.
