@@ -488,7 +488,7 @@ class vrWPnoticesShortcodeClass {
 			$output = $output.$downloadLinks;
 		}
 		
-		return "<div class='wp-notices-outer-wrap'>$output$help</wrap>";
+		return "<div class='wp-notices-outer-wrap'>$output$help</div>";
 		// return $output.'Now: '.$now.'<br>Start: '.$start.'<br>End: '.$end.'<br>To: '.$to: // FOR DEBUG
 	}
 
