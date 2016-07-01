@@ -7,33 +7,48 @@ Tested up to: 4.5.3
 Stable tag: 1.2.1
 License: GPL3
 
-Display notice messages to visitors, admin users, editors, contributors and anonymous readers. Notices can last forever, display between specific dates or at specified times of specified days regularly. Automatically convert notices to images if desired.
+Display notice messages to visitors, admin users, editors, contributors or anonymous readers. Notices can last forever, display between specific dates or at specified times of specified days regularly. Automatically convert notices to images if desired.
 
 == Description ==
-WP Notices is a flexible way to display notices to readers.
+<p>WP Notices is a flexible way to display notices to readers.</p>
 
-Notices can be targeted by WordPress user role (admin, editor, contributor, author, subscriber, reader, anon or any other configured role), by WordPress capabilities (manage_plugins, read, delete_pages or any other configured capability) or targeted at a specific user.
+<p>Notices can be targeted by WordPress user role (admin, editor, contributor, author, subscriber, reader, anon or any other configured role), by WordPress capabilities (manage_plugins, read, delete_pages or any other configured capability) or targeted at a specific user.</p>
 
-Notice messages can be displayed as text or each message can be automatically converted to a PNG image. Useful for displaying advisory notices that you prefer search engines do not index as text. Useful for creating post images on the fly. The image directory is wiped periodically so download and move images to your WP media library if you want to keep them.
+<p>Notice messages can be displayed as text or each message can be automatically converted to a PNG image. Useful for displaying advisory notices that you prefer search engines do not index as text. Useful for creating post images on the fly. The image directory is wiped periodically so download and move images to your WordPress media library if you want to keep them (remember to add them to the post as images from the media library).</p>
 
-The time or period of display can be set using natural language. Display notices forever (by leaving out a start and end time period), from a set start time to an open ended end date, for a specific day, range of days for one time or ad infinnitum. For example start=\Thursday 8am\ End=\Friday\ would display a notice every Thursday from 8am until start of Friday or start=\Thursday 8am\ End=\Friday 4:30pm\ would display a notice every Thursday from 8am until 4:30pm Friday; you can even say start=\Wednesday 1st June 2016 8am\ End=\Friday 24th June 2016\.
+<p>The time or period of display can be set using natural language. Display notices forever (by leaving out a start and end time period), from a set start time to an open ended end date, for a specific day, range of days for one time or ad infinnitum. For example start="Thursday 8am" End="Friday" would display a notice every Thursday from 8am until start of Friday or start="Thursday 8am" End="Friday 4:30pm" would display a notice every Thursday from 8am until 4:30pm Friday; you can even say start="Wednesday 1st June 2016 8am" End="Friday 24th June 2016".</p>
 
-The notice can be styled to change its appearance. There are four inbuilt style classes (alert-success, alert-info, alert-warning and alert-danger).
+<p>The notice can be styled to change its appearance. There are four inbuilt style classes (alert-success, alert-info, alert-warning and alert-danger).</p>
 
-There is a help message built into WP Notices. When using the WP Notices shortcode set help=\true\ to display the help information.
+<p>There is a help message built into WP Notices. When using the WP Notices shortcode set help=\true\ to display the help information.</p>
 
-WP Notices is written to be used to display notices to specific users, user groups or to all readers. It can easily also be used as a flexible lightweight way to show page content to specific users (the style classes are optional) or as a membership plugin (though you would need to configure your membership roles manually).
+<p>WP Notices is written to be used to display notices to specific users, user groups or to all readers. It can easily also be used as a flexible lightweight way to show page content to specific users (the style classes are optional) or as a membership plugin (though you would need to configure your membership roles manually).</p>
 
-WP Notices has been tested. It is known to work. If you find a bug, let us know.
+<p>WP Notices has been tested. It is known to work. If you find a bug, let us know. Support will be provided to fix bugs. We are busy with regular work duties so support may be slow on occasion and anyone who does not read the FAQs before posting a support request will be promptly pointed to read the FAQs.</p>
 
-See FAQ section for usage instructions.
+= How to Use =
+
+<p>See FAQ section for instructions.</p>
 
 == Installation ==
-Install as you would any other WordPress plugin.
+= Automatic installation =
+
+<p>Automatic installation is the easiest option as WordPress handles the file transfers itself and you don’t need to leave your web browser. To do an automatic install of WP Notices, log in to your WordPress dashboard, navigate to the Plugins menu and click Add New.</p>
+
+<p>In the search field type “WP Notices” and click Search Plugins. Once you’ve found this plugin you can view details about it such as the point release, rating and description. Most importantly of course, you can install it by simply clicking “Install Now”.</p>
+
+= Manual installation =
+
+<p>The manual installation method involves downloading WP Notices and uploading it to your webserver via your favourite FTP application. The WordPress codex contains [instructions on how to do this here](https://codex.wordpress.org/Managing_Plugins#Manual_Plugin_Installation).</p>
+
+= Updating =
+
+<p>Automatic updates should work fine. Ensure you backup your site just in case...</p>
 
 == Frequently Asked Questions ==
 
-=== Instructions ===
+= How to Use =
+<p>WP Notices is shortcode driven.</p>
 <p>The shortcode with all attributes is:</p>
 
 <p><strong>[wp-notice to='admin' class='alert alert-success' css='' start='Tuesday 1pm' end='Tuesday 5pm' image='portrait' format='c4' files='pdf,html,png' html5='false' help='true']</strong>Message to display to admin users every Tuesday between 1pm and 5pm.<strong>[/wp-notice]</strong></p>
@@ -125,7 +140,7 @@ Install as you would any other WordPress plugin.
 <p><a href="http://php.net/manual/en/datetime.formats.relative.php" target="_blank">PHP natural language time reference information (Relative Times)</a>.</p>
 
 <p><a href="https://codex.wordpress.org/Roles_and_Capabilities" target="_blank">WordPress roles and capabilities list</a>. These are used in the "to" field.</p>
-=== Questions ===
+= Questions and Answers =
 <strong>Why do iFrames and videos not show in image mode?</strong>
 <p>This is a limitation of the software used to create PDFs. In order to create images we first convert the notice message to PDF format. The PDF is then converted to an image. The image is what you see.</p>
 <p>iFrame content will display as a non-clickable link.</p>
@@ -150,8 +165,14 @@ Install as you would any other WordPress plugin.
 <p>This is caused by a limitation in cache plugins. We can either not cache pages that display notice messages (we're considering adding a nocache='' option but are worried notices shown in widget areas would then cause all pages to not be cached...) or we can ask you to clear the cache for specific pages or clear the cache for the whole site manually. We prefer to ask you to clear the page/site cache if you notice a message is cached too long.</p>
 <p>We do send a 'Do Not Cache' alert to cache plugins for pages that display WP Notices to logged in readers. This prevents leakage to unintended readers.</p>
 
-<strong></strong>
-<p></p>
+<strong>Can I use the shortcode in widget areas?</strong>
+<p>You can. The WP Notices shortcode can be used in a text widget. Keep in mind that WP Notices sends a Do Not Cache alert to file cache plugins to prevent notice messages being displayed after expiration or to the wrong users. When you use WP Notices in a widget area you will need to use widget visibility controls, such as with the Jetpack Widget Visibility module, to narrow display of the text widget to only the pages where you want the widget to display. The next version of WP Notices will implement a method of notice display without need to disable page caching.</p>
+
+<strong>Where can I send donations?</strong>
+<p>Donations are welcome. They can be sent to us through [PayPal](https://paypal.me/vr51)</p>
+
+<strong>Can I contribute</strong>
+<p>Yes you can! Join us on [GitHub](https://github.com/VR51/WP-Notices/)</p>
 
 
 == Screenshots ==
@@ -189,3 +210,4 @@ Install as you would any other WordPress plugin.
 
 23rd June 2016
 
+== Upgrade Notice ==
