@@ -217,9 +217,6 @@ class vrWPnoticesShortcodeClass {
 		// Check for ImageMagick
 		if ( extension_loaded('imagick') ) { $magick = 'true' ; } else { $magick = 'false'; }
 
-		// Generate random suffix
-		$classConstructorSuffix = mt_rand();
-
 		/**
 		*
 		*	Get DB options, create file name and build download links
@@ -230,6 +227,13 @@ class vrWPnoticesShortcodeClass {
 		$wp_notices_directory_url = get_option( 'vr_wp_notices_directory_url' );
 		$file_name = basename(get_permalink()).'-'.mt_rand(); // Add the extension at point of use.
 
+		// Cache file name in DB. 1 Hour expiration. <--- To be implemented when settings page is added
+		/*
+		if ( false === ( $transient_file_name = get_transient( $file_name ) ) ) {
+			set_transient( $file_name, $file_name, 1 * HOUR_IN_SECONDS );
+		}
+		*/
+		
 		$downloadLinks = '';
 		if ( $files ) {
 
