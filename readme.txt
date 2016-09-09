@@ -3,8 +3,8 @@ Contributors: leehodson
 Tags: notices,messages,members,membership,timed,regular,periodic
 Donate link: https://paypal.me/vr51
 Requires at least: 4.0.0
-Tested up to: 4.5.3
-Stable tag: 1.2.1
+Tested up to: 4.6.1
+Stable tag: 1.2.2
 License: GPL3
 
 Display notice messages to visitors, admin users, editors, contributors or anonymous readers. Notices can last forever, display between specific dates or at specified times of specified days regularly. Automatically convert notices to images if desired.
@@ -179,6 +179,12 @@ Display notice messages to visitors, admin users, editors, contributors or anony
 1. Info Message
 
 == Changelog ==
+1.2.2 - 9th September 2016
+
+- WordPress 4.6.1 compatibility flag
+-	Updated DOMPDF
+- Moved dompdf directory from includes/dompdf to includes/vendor/dompdf. This fits in better with dompdf files being built via Composer
+
 1.2.1 - 26th June 2016
 
 - Added option to choose which download links to display of the files for PDF, HTML and PNG.

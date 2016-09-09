@@ -164,6 +164,12 @@ Display notice messages to visitors, admin users, editors, contributors and anon
 <p>Yes you can! Join us on [GitHub](https://github.com/VR51/WP-Notices/)</p>
 
 # Changelog
+1.2.2 - 9th September 2016
+
+- WordPress 4.6.1 compatibility flag
+-	Updated DOMPDF
+- Moved dompdf directory from includes/dompdf to includes/vendor/dompdf. This fits in better with dompdf files being built via Composer
+
 1.2.1 - 26th June 2016
 
 - Added option to choose which download links to display of the files for PDF, HTML and PNG.
