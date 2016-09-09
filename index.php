@@ -9,9 +9,9 @@ Plugin URI: https://github.com/VR51/WP-Notices
 Donate link: https://paypal.me/vr51
 Description: Display notice messages to visitors, admin users, editors, contributors and anonymous readers. Notices can last forever, display between specific dates or at specified times of specified days regularly. Automatically convert notices to images if desired.
 Requires at least: 4.0.0
-Tested up to: 4.5.3
-Stable tag: 1.2.1
-Version: 1.2.1
+Tested up to: 4.6.1
+Stable tag: 1.2.2
+Version: 1.2.2
 License: GPL3
 */
 
@@ -74,12 +74,12 @@ if ( !function_exists( 'add_action' ) ) {
 function vr_wp_notices_install() {
 
 	// Check for dompdf directory, rename it if it exists
-	if ( file_exists( plugin_dir_path( __FILE__ ).'includes/dompdf' ) ) {
+	if ( file_exists( plugin_dir_path( __FILE__ ).'includes/vendor' ) ) {
 		// Register database option to store random directory name for dompdf and rename dompdf directory (security precaution)
 		$locationDOMPDF = plugin_dir_path( __FILE__ ).'includes/'.hash( 'sha1', mt_rand() );
 		update_option( 'vr_wp_notices_dompdf', "$locationDOMPDF" );
 		$locationDOMPDF = get_option('vr_wp_notices_dompdf');
-		rename( plugin_dir_path( __FILE__ ).'includes/dompdf', "$locationDOMPDF" );
+		rename( plugin_dir_path( __FILE__ ).'includes/vendor', "$locationDOMPDF" );
 	}
 	
 	// Create WP Notices directory path and URL in wp-content/wp-notices/BLOG ID
@@ -145,10 +145,10 @@ register_uninstall_hook( __FILE__, 'vr_wp_notices_uninstall' );
 **/
 
 // Use dompdf to generate PDF of the content (which will later be converted to an image)
-if ( file_exists( plugin_dir_path( __FILE__ ).'includes/dompdf/autoload.inc.php' ) ) {
-	require_once plugin_dir_path( __FILE__ ).'includes/dompdf/autoload.inc.php';
+if ( file_exists( plugin_dir_path( __FILE__ ).'includes/vendor/autoload.php' ) ) {
+	require_once plugin_dir_path( __FILE__ ).'includes/vendor/autoload.php';
 } else {
-	require_once get_option('vr_wp_notices_dompdf').'/autoload.inc.php';
+	require_once get_option('vr_wp_notices_dompdf').'/autoload.php';
 }
 // reference the Dompdf namespace
 use Dompdf\Dompdf;
