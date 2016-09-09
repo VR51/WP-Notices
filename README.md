@@ -164,6 +164,10 @@ Display notice messages to visitors, admin users, editors, contributors and anon
 <p>Yes you can! Join us on [GitHub](https://github.com/VR51/WP-Notices/)</p>
 
 # Changelog
+1.2.4 - 9th September 2016
+
+- Dummy release to resolve WordPress SVN repository upload error with plugin release tags 1.2.2 and 1.2.3. No code changes.
+
 1.2.2 - 9th September 2016
 
 - WordPress 4.6.1 compatibility flag

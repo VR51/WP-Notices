@@ -10,8 +10,8 @@ Donate link: https://paypal.me/vr51
 Description: Display notice messages to visitors, admin users, editors, contributors and anonymous readers. Notices can last forever, display between specific dates or at specified times of specified days regularly. Automatically convert notices to images if desired.
 Requires at least: 4.0.0
 Tested up to: 4.6.1
-Stable tag: 1.2.2
-Version: 1.2.2
+Stable tag: 1.2.4
+Version: 1.2.4
 License: GPL3
 */
 

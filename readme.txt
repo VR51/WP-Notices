@@ -4,7 +4,7 @@ Tags: notices,messages,members,membership,timed,regular,periodic
 Donate link: https://paypal.me/vr51
 Requires at least: 4.0.0
 Tested up to: 4.6.1
-Stable tag: 1.2.2
+Stable tag: 1.2.4
 License: GPL3
 
 Display notice messages to visitors, admin users, editors, contributors or anonymous readers. Notices can last forever, display between specific dates or at specified times of specified days regularly. Automatically convert notices to images if desired.
@@ -179,6 +179,10 @@ Display notice messages to visitors, admin users, editors, contributors or anony
 1. Info Message
 
 == Changelog ==
+1.2.4 - 9th September 2016
+
+- Dummy release to resolve WordPress SVN repository upload error with plugin release tags 1.2.2 and 1.2.3. No code changes.
+
 1.2.2 - 9th September 2016
 
 - WordPress 4.6.1 compatibility flag
